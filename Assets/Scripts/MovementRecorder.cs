@@ -77,4 +77,48 @@ public class MovementRecorder : MonoBehaviour
 
         Debug.Log("Movement data saved in "+ path);
     }
+    
+    private void SaveRemainingBuffer()
+    {
+        string path = dirPath + $"/MovementData{randomExpNum}.txt";
+        
+        
+        lock (savingBuffer)
+        {
+            if (savingBuffer.Count > 0)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    while (savingBuffer.Count > 0)
+                    {
+                        var data = savingBuffer.Dequeue();
+                        writer.WriteLine($"{data.time},{data.position.x},{data.position.z},{data.rotation}");
+                    }
+                }
+                Debug.Log("Remaining movement data saved in " + path);
+            }
+        }
+
+        lock (movementBuffer)
+        {
+            if (movementBuffer.Count > 0)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    while (movementBuffer.Count > 0)
+                    {
+                        var data = movementBuffer.Dequeue();
+                        writer.WriteLine($"{data.time},{data.position.x},{data.position.z},{data.rotation}");
+                    }
+                }
+                Debug.Log("Remaining movement data saved in " + path);
+            }
+        }
+    }
+    
+    private void OnApplicationQuit()
+    {
+        Debug.Log("Application is quitting. Saving remaining buffer...");
+        SaveRemainingBuffer();
+    }
 }
