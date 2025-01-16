@@ -7,11 +7,11 @@ using UnityEngine;
 public class MovementRecorder : MonoBehaviour
 {
     // public Transform characterTransform; // 캐릭터 Transform
-    public int bufferSize = 1000; // Circular Buffer 크기
+    public int bufferSize = 500; // Circular Buffer 크기
     public float saveInterval = 5f; // 데이터를 저장하는 간격 (초 단위)
 
-    private Queue<(Vector3 position, float time)> movementBuffer; // Circular Buffer
-    private Queue<(Vector3 position, float time)> savingBuffer;  // Saving Buffer
+    private Queue<(Vector3 position, float rotation, float time)> movementBuffer; // Circular Buffer
+    private Queue<(Vector3 position, float rotation, float time)> savingBuffer;  // Saving Buffer
     private float saveTimer = 0f; // 저장 타이머
     private string dirPath;
     private int randomExpNum;
@@ -19,18 +19,15 @@ public class MovementRecorder : MonoBehaviour
     private void Start()
     {
         Application.targetFrameRate = 40;
-        movementBuffer = new Queue<(Vector3, float)>(bufferSize);
-        savingBuffer = new Queue<(Vector3, float)>(bufferSize);
+        movementBuffer = new Queue<(Vector3, float, float)>(bufferSize);
+        savingBuffer = new Queue<(Vector3, float, float)>(bufferSize);
         dirPath = Application.persistentDataPath;
         randomExpNum = Random.Range(0, 500);
     }
 
     private void Update()
     {
-        // 캐릭터 위치를 프레임마다 기록
-        Vector3 position = new Vector3(transform.position.x, 0f, transform.position.z);
-        float currentTime = Time.time;
-        RecordPosition(position, currentTime);
+        RecordPosition(transform.position, transform.rotation.eulerAngles.y, Time.time);
 
         // 저장 타이머 업데이트
         saveTimer += Time.deltaTime;
@@ -41,7 +38,7 @@ public class MovementRecorder : MonoBehaviour
         }
     }
 
-    private void RecordPosition(Vector3 position, float time)
+    private void RecordPosition(Vector3 position, float rotation, float time)
     {
         lock (movementBuffer)
         {
@@ -49,7 +46,7 @@ public class MovementRecorder : MonoBehaviour
             {
                 movementBuffer.Dequeue(); // 오래된 데이터 제거
             }
-            movementBuffer.Enqueue((position, time)); // 새로운 데이터 추가
+            movementBuffer.Enqueue((position, rotation, time)); // 새로운 데이터 추가
         }
     }
 
@@ -58,7 +55,7 @@ public class MovementRecorder : MonoBehaviour
         // movementBuffer 데이터를 savingBuffer로 이동
         lock (movementBuffer)
         {
-            savingBuffer = new Queue<(Vector3 position, float time)>(movementBuffer);
+            savingBuffer = new Queue<(Vector3, float, float)>(movementBuffer);
             movementBuffer.Clear();
         }
         
@@ -72,7 +69,7 @@ public class MovementRecorder : MonoBehaviour
                 while (savingBuffer.Count > 0)
                 {
                     var data = savingBuffer.Dequeue();
-                    writer.WriteLine($"{data.time},{data.position.x},{data.position.z}");
+                    writer.WriteLine($"{data.time},{data.position.x},{data.position.z},{data.rotation}");
                 }
             }
             savingBuffer.Clear();
