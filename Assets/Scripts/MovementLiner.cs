@@ -25,7 +25,7 @@ public class MovementLiner : MonoBehaviour
 
     void Start()
     {
-        loadButton.onClick.AddListener(LoadAndReplayPath);
+        // loadButton.onClick.AddListener(LoadAndReplayPath);
     }
 
     void Update()

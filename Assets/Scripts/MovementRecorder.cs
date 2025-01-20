@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MovementRecorder : MonoBehaviour
 {
@@ -118,7 +119,10 @@ public class MovementRecorder : MonoBehaviour
     
     private void OnApplicationQuit()
     {
-        Debug.Log("Application is quitting. Saving remaining buffer...");
-        SaveRemainingBuffer();
+        if (SceneManager.GetActiveScene().name == "MainScene")
+        {
+            Debug.Log("Application is quitting. Saving remaining buffer...");
+            SaveRemainingBuffer();
+        }
     }
 }

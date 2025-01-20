@@ -407,7 +407,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8a1a5a1e3f3f594bb7229d3eb9f6604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  verticalMove: 0
 --- !u!1 &8287130907783151294
 GameObject:
   m_ObjectHideFlags: 0
@@ -586,6 +585,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   platform: {fileID: 6031165401544879725, guid: 4743349d7f742f047a64402aa3e7b6c1, type: 3}
+  platformWidth: 0
+  section: {fileID: 0}
 --- !u!1 &8287130908594834488
 GameObject:
   m_ObjectHideFlags: 0

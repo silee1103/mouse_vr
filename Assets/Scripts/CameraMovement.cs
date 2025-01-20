@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
-    public float verticalMove;
     private Animator _anim;
     private Animator _parentAnim;
 
