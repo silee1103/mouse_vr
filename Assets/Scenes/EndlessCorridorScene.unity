@@ -2025,6 +2025,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 947120261}
     - target: {fileID: 8287130908233465136, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: existingSectionParent
+      value: 
+      objectReference: {fileID: 1989013182}
+    - target: {fileID: 8287130908233465136, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: existingSections.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -2087,6 +2091,10 @@ PrefabInstance:
     - target: {fileID: 8287130908233465149, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_Name
       value: Animals
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130908233465151, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_Constraints
+      value: 116
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ea1138e49c2b34247936c2498423093a, type: 3}

@@ -69,10 +69,7 @@ public class PortConnect : MonoBehaviour
                     if (float.TryParse(incomingData, out float numericValue))
                     {
                         // Debug.Log("Received (float): " + numericValue);
-                        speed = (numericValue / 120) * (220 * (float) Math.PI) / 200;
-
-                        
-                        Debug.Log(speed);
+                        speed = (numericValue / 120) * (210 * (float)Math.PI) / 100;
                     }
                     else
                     {
