@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class AdjustPanel : MonoBehaviour
 {
@@ -18,14 +19,24 @@ public class AdjustPanel : MonoBehaviour
     [SerializeField]
     private int _maxSize = 12;
     
+    public TMP_Text corridorNumberText;
+    public TMP_InputField corridorNumberInput; // corridorNumber 조정용 InputField
+    public Button resetButton; // 씬 리셋 버튼
+    
     // Start is called before the first frame update
     void Start()
     {
         _anim = GetComponent<Animator>();
         _cameraAnim = GameObject.FindWithTag("Camera").GetComponent<Animator>();
         _platformTrigger = GameObject.Find("Animals").GetComponent<PlatformTrigger>();
+        
         slider.onValueChanged.AddListener(OnSliderValueChanged);
-        slider.value = _maxSize/2;
+        slider.value = _maxSize / 2;
+        corridorSizeText.text = (_maxSize / 2).ToString();
+        corridorNumberText.text = _platformTrigger.corridorNumber.ToString();
+        
+        // InputField 이벤트 연결
+        corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
     }
     
     void OnSliderValueChanged(float value)
@@ -35,6 +46,27 @@ public class AdjustPanel : MonoBehaviour
             corridorSizeText.text = value.ToString("F2");
             _platformTrigger.OnSliderValueChanged(value/_maxSize*2);
         }
+    }
+    
+    void OnCorridorNumberChanged(string value)
+    {
+        if (int.TryParse(value, out int corridorNumber))
+        {
+            // PlatformTrigger의 corridorNumber 설정
+            _platformTrigger.corridorNumber = corridorNumber;
+            corridorNumberText.text = corridorNumber.ToString();
+            Debug.Log($"Corridor Number updated to: {corridorNumber}");
+        }
+        else
+        {
+            Debug.LogError("Invalid corridorNumber input!");
+        }
+    }
+
+    public void ResetScene()
+    {
+        // 현재 씬을 다시 로드
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void PopUpUI()
@@ -70,4 +102,6 @@ public class AdjustPanel : MonoBehaviour
         }
         _cameraAnim.enabled = !_cameraAnim.enabled;
     }
+    
+    
 }

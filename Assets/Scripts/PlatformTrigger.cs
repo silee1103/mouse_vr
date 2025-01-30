@@ -7,10 +7,14 @@ using UnityEngine.UI;
 public class PlatformTrigger : MonoBehaviour
 {
     public GameObject platform;
+    public GameObject endCorridor; // 마지막에 생성할 EndCorridor 프리팹
     public float platformWidth;
     public GameObject existingSectionParent;
+    public int corridorNumber = -1; // 생성할 플랫폼의 수 (-1일 경우 무한 생성)
 
     private List<GameObject> _spawnedPlatforms; // 생성된 플랫폼 관리
+    private int _currentCorridorCount = 0; // 현재 생성된 플랫폼 개수
+    private bool _isCorridorEnded = false;
 
     private void Start()
     {
@@ -47,38 +51,59 @@ public class PlatformTrigger : MonoBehaviour
             // 마지막 플랫폼의 끝 위치 계산 (z 좌표)
             float lastPlatformEndZ = lastPlatformCollider.bounds.max.z;
 
-            // 새로운 플랫폼 생성
-            GameObject newPlatform = Instantiate(platform, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
-            
-            // 새로 생성될 플랫폼의 BoxCollider 가져오기
-            BoxCollider newPlatformCollider = newPlatform.GetComponentInChildren<BoxCollider>();
-
-            if (newPlatformCollider == null)
+            if (corridorNumber == -1 || _currentCorridorCount < corridorNumber)
             {
-                Debug.LogError("새 플랫폼에 BoxCollider가 없습니다!");
-                return;
+                // 새로운 플랫폼 생성
+                GameObject newPlatform = Instantiate(platform, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
+
+                BoxCollider newPlatformCollider = newPlatform.GetComponentInChildren<BoxCollider>();
+
+                if (newPlatformCollider == null)
+                {
+                    Debug.LogError("새 플랫폼에 BoxCollider가 없습니다!");
+                    return;
+                }
+
+                // 새 플랫폼의 시작 위치 계산 (끝부분에 정확히 이어지게)
+                float newPlatformOffset = newPlatformCollider.bounds.max.z;
+                float newPlatformStartZ = lastPlatformEndZ + newPlatformOffset;
+
+                Vector3 spawnPosition = new Vector3(
+                    lastPlatform.transform.position.x,
+                    lastPlatform.transform.position.y,
+                    newPlatformStartZ
+                );
+
+                newPlatform.transform.position = spawnPosition;
+
+                // 새로운 플랫폼 크기 설정
+                newPlatform.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y, platform.transform.localScale.z);
+
+                // 생성된 플랫폼 리스트에 추가
+                _spawnedPlatforms.Add(newPlatform);
+
+                // 플랫폼 생성 개수 증가
+                _currentCorridorCount++;
             }
 
-            // 새 플랫폼의 시작 위치 계산 (끝부분에 정확히 이어지게)
-            float newPlatformOffset = newPlatformCollider.bounds.max.z; // 시작 부분의 로컬 오프셋
-            float newPlatformStartZ = lastPlatformEndZ + newPlatformOffset;
+            // corridorNumber가 -1이 아니고 플랫폼을 모두 생성한 경우
+            if (!_isCorridorEnded && corridorNumber != -1 && _currentCorridorCount == corridorNumber)
+            {
+                // EndCorridor 생성
+                GameObject newEndCorridor = Instantiate(endCorridor, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
 
-            Vector3 spawnPosition = new Vector3(
-                lastPlatform.transform.position.x,
-                lastPlatform.transform.position.y,
-                newPlatformStartZ
-            );
+                Vector3 endCorridorPosition = new Vector3(
+                    lastPlatform.transform.position.x,
+                    lastPlatform.transform.position.y,
+                    lastPlatformEndZ + newEndCorridor.GetComponentInChildren<BoxCollider>().bounds.size.z
+                );
 
-            newPlatform.transform.position = spawnPosition;
+                newEndCorridor.transform.position = endCorridorPosition;
 
-            // 새로운 플랫폼 크기 설정
-            newPlatform.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y, platform.transform.localScale.z);
-
-            // 생성된 플랫폼 리스트에 추가
-            _spawnedPlatforms.Add(newPlatform);
-
-            // 트리거 비활성화
-            other.enabled = false;
+                // EndCorridor 생성 후 트리거 비활성화
+                other.enabled = false;
+                _isCorridorEnded = true;
+            }
         }
     }
 
