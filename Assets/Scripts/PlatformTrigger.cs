@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class PlatformTrigger : MonoBehaviour
 {
@@ -30,6 +32,8 @@ public class PlatformTrigger : MonoBehaviour
                 _spawnedPlatforms.Add(child.gameObject);
             }
         }
+
+        corridorNumber = Random.Range(8, 17);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -54,7 +58,8 @@ public class PlatformTrigger : MonoBehaviour
             if (corridorNumber == -1 || _currentCorridorCount < corridorNumber)
             {
                 // 새로운 플랫폼 생성
-                GameObject newPlatform = Instantiate(platform, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
+                GameObject newPlatform = Instantiate(platform, Vector3.zero, Quaternion.identity,
+                    existingSectionParent.transform);
 
                 BoxCollider newPlatformCollider = newPlatform.GetComponentInChildren<BoxCollider>();
 
@@ -77,7 +82,8 @@ public class PlatformTrigger : MonoBehaviour
                 newPlatform.transform.position = spawnPosition;
 
                 // 새로운 플랫폼 크기 설정
-                newPlatform.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y, platform.transform.localScale.z);
+                newPlatform.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y,
+                    platform.transform.localScale.z);
 
                 // 생성된 플랫폼 리스트에 추가
                 _spawnedPlatforms.Add(newPlatform);
@@ -85,26 +91,51 @@ public class PlatformTrigger : MonoBehaviour
                 // 플랫폼 생성 개수 증가
                 _currentCorridorCount++;
             }
-
             // corridorNumber가 -1이 아니고 플랫폼을 모두 생성한 경우
-            if (!_isCorridorEnded && corridorNumber != -1 && _currentCorridorCount == corridorNumber)
+            else if (!_isCorridorEnded && _currentCorridorCount == corridorNumber)
             {
                 // EndCorridor 생성
-                GameObject newEndCorridor = Instantiate(endCorridor, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
+                GameObject newEndCorridor = Instantiate(endCorridor, Vector3.zero, Quaternion.identity,
+                    existingSectionParent.transform);
+
+                BoxCollider newPlatformCollider = newEndCorridor.GetComponentInChildren<BoxCollider>();
+
+                if (newPlatformCollider == null)
+                {
+                    Debug.LogError("새 플랫폼에 BoxCollider가 없습니다!");
+                    return;
+                }
+
+                // 새 플랫폼의 시작 위치 계산 (끝부분에 정확히 이어지게)
+                float newPlatformOffset = newPlatformCollider.bounds.max.z;
+                float newPlatformStartZ = lastPlatformEndZ + newPlatformOffset;
+
+                Debug.Log("newPlatformOffset: " + newPlatformOffset + " + lastPlatformEndZ: " + lastPlatformEndZ +
+                          " = " + newPlatformStartZ);
 
                 Vector3 endCorridorPosition = new Vector3(
                     lastPlatform.transform.position.x,
                     lastPlatform.transform.position.y,
-                    lastPlatformEndZ + newEndCorridor.GetComponentInChildren<BoxCollider>().bounds.size.z
+                    newPlatformStartZ
                 );
 
                 newEndCorridor.transform.position = endCorridorPosition;
 
+                // 새로운 플랫폼 크기 설정
+                newEndCorridor.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y,
+                    platform.transform.localScale.z);
+
+                _spawnedPlatforms.Add(newEndCorridor);
+
                 // EndCorridor 생성 후 트리거 비활성화
-                other.enabled = false;
                 _isCorridorEnded = true;
             }
         }
+        else if (other.gameObject.CompareTag("WaterTrigger"))
+        {
+            
+        }
+        Destroy(other);
     }
 
     public void OnSliderValueChanged(float value)

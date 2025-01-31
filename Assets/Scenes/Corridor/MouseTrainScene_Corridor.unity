@@ -360,7 +360,6 @@ MonoBehaviour:
   headRealismText: {fileID: 275479830}
   corridorSizeText: {fileID: 1362080040}
   slider: {fileID: 2102388742}
-  _maxSize: 10
   corridorNumberText: {fileID: 1185782992}
   corridorNumberInput: {fileID: 1777989787}
   resetButton: {fileID: 249804127}
@@ -1609,7 +1608,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1130358193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1617,7 +1616,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1130358192}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 04a833443b00db649934db134edb14f4, type: 3}
   m_Name: 
@@ -1648,7 +1647,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1130358192}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e22130f84db7cb34c96a035ce75b6c02, type: 3}
   m_Name: 
@@ -3124,7 +3123,19 @@ MonoBehaviour:
   m_Value: 6
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 118841439}
+        m_TargetAssemblyTypeName: AdjustPanel, Assembly-CSharp
+        m_MethodName: OnSliderValueChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2145692772
 GameObject:
   m_ObjectHideFlags: 0
@@ -3324,9 +3335,17 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1580051249587429485, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7075144436548562849, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7075144436548562849, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.2
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 7075144436548562849, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3347,6 +3366,34 @@ PrefabInstance:
     - target: {fileID: 8287130907650135689, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_TargetDisplay
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.54
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.05104065
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.99965733
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.026176924
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8287130907694080724, guid: ea1138e49c2b34247936c2498423093a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8287130907694080725, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_TagString
@@ -3450,7 +3497,7 @@ PrefabInstance:
       objectReference: {fileID: 704219463}
     - target: {fileID: 8287130908233465151, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_Constraints
-      value: 80
+      value: 112
       objectReference: {fileID: 0}
     - target: {fileID: 8287130908594834488, guid: ea1138e49c2b34247936c2498423093a, type: 3}
       propertyPath: m_IsActive

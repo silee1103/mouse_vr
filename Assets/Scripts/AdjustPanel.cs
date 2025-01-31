@@ -16,7 +16,6 @@ public class AdjustPanel : MonoBehaviour
     
     public TMP_Text corridorSizeText;
     public Slider slider;
-    [SerializeField]
     private int _maxSize = 12;
     
     public TMP_Text corridorNumberText;
@@ -30,16 +29,20 @@ public class AdjustPanel : MonoBehaviour
         _cameraAnim = GameObject.FindWithTag("Camera").GetComponent<Animator>();
         _platformTrigger = GameObject.Find("Animals").GetComponent<PlatformTrigger>();
         
-        slider.onValueChanged.AddListener(OnSliderValueChanged);
+        // slider.onValueChanged.AddListener(OnSliderValueChanged);
+        corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
+        Invoke("SetUpTexts", 0.1f);
+    }
+
+    void SetUpTexts()
+    {
         slider.value = _maxSize / 2;
         corridorSizeText.text = (_maxSize / 2).ToString();
-        corridorNumberText.text = _platformTrigger.corridorNumber.ToString();
         
-        // InputField 이벤트 연결
-        corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
+        corridorNumberText.text = _platformTrigger.corridorNumber.ToString();
     }
     
-    void OnSliderValueChanged(float value)
+    public void OnSliderValueChanged(float value)
     {
         if (corridorSizeText != null)
         {

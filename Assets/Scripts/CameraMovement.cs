@@ -3,14 +3,14 @@ using UnityEngine;
 public class CameraMovement : MonoBehaviour
 {
     public float defaultDuration = 0.5f; // 속도가 0일 때 애니메이션 주기
-    public float activeDuration = 0.5f; // 속도가 0이 아닐 때 애니메이션 주기
+    public float activeDuration = 0.1f; // 속도가 0이 아닐 때 애니메이션 주기
 
-    private float baseMinY = 0.28f; // 기본 최소 y 값
-    private float baseMaxY = 0.285f; // 기본 최대 y 값
+    private float baseMinY = 0.54f; // 기본 최소 y 값
+    private float baseMaxY = 0.545f; // 기본 최대 y 값
     // private float activeMinY = 0.27f; // 속도가 있을 때 최소 y 값
     // private float activeMaxY = 0.3f;  // 속도가 있을 때 최대 y 값
-    private float underWidth = 0.02f;
-    private float upperWidth = 0.02f;
+    private float underWidth = 0.03f;
+    private float upperWidth = 0.03f;
     
     private float currentMinY; // 현재 최소 y 값
     private float currentMaxY; // 현재 최대 y 값
@@ -48,7 +48,7 @@ public class CameraMovement : MonoBehaviour
             // 속도가 있을 때 활성 애니메이션
             currentMinY = baseMinY - underWidth * speed;
             currentMaxY = baseMinY + upperWidth * speed;
-            currentDuration = activeDuration / speed;
+            currentDuration = activeDuration / (speed * 2);
         }
     }
 }
