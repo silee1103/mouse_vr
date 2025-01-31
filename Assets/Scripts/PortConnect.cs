@@ -54,6 +54,20 @@ public class PortConnect : MonoBehaviour
         }
     }
 
+    public void SendWaterSign()
+    {
+        SendSignal("W\r\n");
+    }
+    
+    void SendSignal(string message)
+    {
+        if (serialPort != null && serialPort.IsOpen)
+        {
+            serialPort.WriteLine(message); // 데이터 전송
+            Debug.Log("Sent: " + message);
+        }
+    }
+
     private void SendCommand()
     {
         if (serialPort != null && serialPort.IsOpen)

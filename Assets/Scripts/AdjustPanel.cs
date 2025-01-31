@@ -75,15 +75,12 @@ public class AdjustPanel : MonoBehaviour
     public void PopUpUI()
     {
         uiPopUp.interactable = false;
-        Debug.Log(_anim.GetBool("pop"));
         if (_anim.GetBool("pop"))
         {
-            Debug.Log("Set Bool pop: false");
             _anim.SetBool("pop", false);
         }
         else
         {
-            Debug.Log("Set Bool pop: true");
             _anim.SetBool("pop", true);
         }
     }

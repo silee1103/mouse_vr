@@ -1,10 +1,9 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlatformTrigger : MonoBehaviour
 {
@@ -14,6 +13,8 @@ public class PlatformTrigger : MonoBehaviour
     public GameObject existingSectionParent;
     public int corridorNumber = -1; // 생성할 플랫폼의 수 (-1일 경우 무한 생성)
 
+    [SerializeField] private Image _blackImage;
+    [SerializeField] private float _waterOutDuration = 5f;
     private List<GameObject> _spawnedPlatforms; // 생성된 플랫폼 관리
     private int _currentCorridorCount = 0; // 현재 생성된 플랫폼 개수
     private bool _isCorridorEnded = false;
@@ -109,10 +110,7 @@ public class PlatformTrigger : MonoBehaviour
                 // 새 플랫폼의 시작 위치 계산 (끝부분에 정확히 이어지게)
                 float newPlatformOffset = newPlatformCollider.bounds.max.z;
                 float newPlatformStartZ = lastPlatformEndZ + newPlatformOffset;
-
-                Debug.Log("newPlatformOffset: " + newPlatformOffset + " + lastPlatformEndZ: " + lastPlatformEndZ +
-                          " = " + newPlatformStartZ);
-
+                
                 Vector3 endCorridorPosition = new Vector3(
                     lastPlatform.transform.position.x,
                     lastPlatform.transform.position.y,
@@ -133,10 +131,39 @@ public class PlatformTrigger : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("WaterTrigger"))
         {
-            
+            StartCoroutine(WaterTrigger());
         }
         Destroy(other);
     }
+
+    private IEnumerator WaterTrigger()
+    {
+        yield return StartCoroutine(FadeInImage(1f));
+        PortConnect.pm.SendWaterSign();
+        yield return new WaitForSeconds(_waterOutDuration);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+    
+    IEnumerator FadeInImage(float duration)
+    {
+        Color color = _blackImage.color;
+        float startAlpha = 0f;
+        float endAlpha = 1f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
+            _blackImage.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+
+        // Ensure final value
+        _blackImage.color = new Color(color.r, color.g, color.b, endAlpha);
+    }
+    
+    
 
     public void OnSliderValueChanged(float value)
     {

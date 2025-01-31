@@ -28,7 +28,7 @@ public class CharacterMovementHoz : MonoBehaviour
         _colliderYSize = GetComponent<BoxCollider>().size.y;
     }
     
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
         if (Time.time - lastUpdateTime >= 0.1)
@@ -59,7 +59,7 @@ public class CharacterMovementHoz : MonoBehaviour
         float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }
+    }*/
     
     bool CheckHitWall(Vector3 movement)
     {
@@ -67,9 +67,6 @@ public class CharacterMovementHoz : MonoBehaviour
         float scope = 1f;
 
         Vector3 ray = transform.position + Vector3.up * (_colliderYSize * 0.5f);
-        
-        Debug.DrawRay(ray, movement * scope, Color.red);
-
         
         if (Physics.Raycast(ray, movement, out RaycastHit hit, scope))
         {
@@ -80,7 +77,7 @@ public class CharacterMovementHoz : MonoBehaviour
         return false;
     }
     
-    /*private void FixedUpdate()
+    private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
         if (Time.time - lastUpdateTime >= pm.sendInterval)
@@ -96,6 +93,10 @@ public class CharacterMovementHoz : MonoBehaviour
         if (Mathf.Abs(currentSpeed) > 0.1f)
         {
             Vector3 moveDirection = transform.forward * (currentSpeed * speedWorldMul * Time.fixedDeltaTime);
+            
+            if (CheckHitWall(moveDirection))
+                moveDirection = Vector3.zero;
+                
             transform.Translate(moveDirection, Space.World);
 
             _anim.SetBool("running", true);
@@ -109,5 +110,5 @@ public class CharacterMovementHoz : MonoBehaviour
         float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }*/
+    }
 }
