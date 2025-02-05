@@ -8,14 +8,18 @@ using System;
 public class PortConnect : MonoBehaviour
 {
     private static PortConnect instance;
-    private SerialPort serialPort;
-    private Thread readThread;
+    private SerialPort serialPortMain;
+    private SerialPort serialPortUSB;
+    private Thread readThreadMain;
+    private Thread readThreadUSB;
     private bool isRunning = false;
     public float speed = 0f;
     public static PortConnect pm;
     
     [SerializeField]
-    private string portName = "COM16"; // 사용할 포트 이름
+    private string portNameMain = "COM16"; // 사용할 포트 이름
+    [SerializeField]
+    private string portNameUSB = "COM6"; // 사용할 포트 이름
     [SerializeField]
     private int baudRate = 9600; // 보드레이트
     public float sendInterval = 0.1f; // 명령 전송 주기 (초 단위)
@@ -37,14 +41,19 @@ public class PortConnect : MonoBehaviour
     {
         try
         {
-            serialPort = new SerialPort(portName, baudRate);
-            serialPort.Open();
-            serialPort.ReadTimeout = 1000;
-            Debug.Log("Serial Port Opened: " + portName);
+            serialPortMain = new SerialPort(portNameMain, baudRate);
+            serialPortMain.Open();
+            serialPortMain.ReadTimeout = 1000;
+            Debug.Log("Serial Port Opened: " + portNameMain);
+            
+            serialPortUSB = new SerialPort(portNameUSB, baudRate);
+            serialPortUSB.Open();
+            serialPortUSB.ReadTimeout = 1000;
+            Debug.Log("Serial Port Opened: " + portNameUSB);
 
             isRunning = true;
-            readThread = new Thread(ReadSerialData);
-            readThread.Start();
+            readThreadMain = new Thread(ReadSerialData);
+            readThreadMain.Start();
 
             InvokeRepeating(nameof(SendCommand), 0f, sendInterval);
         }
@@ -56,24 +65,24 @@ public class PortConnect : MonoBehaviour
 
     public void SendWaterSign()
     {
-        SendSignal("W\r\n");
-    }
-    
-    void SendSignal(string message)
-    {
-        if (serialPort != null && serialPort.IsOpen)
+        if (serialPortUSB != null && serialPortUSB.IsOpen)
         {
-            serialPort.WriteLine(message); // 데이터 전송
-            Debug.Log("Sent: " + message);
+            serialPortUSB.Write("1");
+            Debug.Log("Sent Water Signal to COM6");
+        }
+        else
+        {
+            Debug.LogError("COM6 not available");
         }
     }
 
+
     private void SendCommand()
     {
-        if (serialPort != null && serialPort.IsOpen)
+        if (serialPortMain != null && serialPortMain.IsOpen)
         {
             string fullCommand = command + "\r\n";
-            serialPort.Write(fullCommand);
+            serialPortMain.Write(fullCommand);
         }
     }
 
@@ -83,9 +92,9 @@ public class PortConnect : MonoBehaviour
         {
             try
             {
-                if (serialPort != null && serialPort.IsOpen)
+                if (serialPortMain != null && serialPortMain.IsOpen)
                 {
-                    string incomingData = serialPort.ReadLine();
+                    string incomingData = serialPortMain.ReadLine();
                     if (float.TryParse(incomingData, out float numericValue))
                     {
                         speed = (numericValue / 120) * (210 * (float)Math.PI) / 100;
@@ -116,14 +125,25 @@ public class PortConnect : MonoBehaviour
     private void Cleanup()
     {
         isRunning = false;
-        if (readThread != null && readThread.IsAlive)
+        if (readThreadMain != null && readThreadMain.IsAlive)
         {
-            readThread.Join();
+            readThreadMain.Join();
+        }
+        
+        if (readThreadUSB != null && readThreadUSB.IsAlive)
+        {
+            readThreadUSB.Join();
         }
 
-        if (serialPort != null && serialPort.IsOpen)
+        if (serialPortMain != null && serialPortMain.IsOpen)
         {
-            serialPort.Close();
+            serialPortMain.Close();
+            Debug.Log("Serial Port Closed");
+        }
+        
+        if (serialPortUSB != null && serialPortUSB.IsOpen)
+        {
+            serialPortUSB.Close();
             Debug.Log("Serial Port Closed");
         }
     }

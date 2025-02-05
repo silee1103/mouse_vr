@@ -110,7 +110,6 @@ GameObject:
   - component: {fileID: 6031165401453392085}
   - component: {fileID: 6031165401453392084}
   - component: {fileID: 6031165401453392087}
-  - component: {fileID: 6031165401453392090}
   m_Layer: 0
   m_Name: RWall
   m_TagString: Wall
@@ -196,19 +195,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &6031165401453392090
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6031165401453392081}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6031165401544879725
 GameObject:
   m_ObjectHideFlags: 0
@@ -234,7 +220,7 @@ Transform:
   m_GameObject: {fileID: 6031165401544879725}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6031165401703265808}
@@ -301,7 +287,6 @@ GameObject:
   - component: {fileID: 6031165401703265815}
   - component: {fileID: 6031165401703265814}
   - component: {fileID: 6031165401703265809}
-  - component: {fileID: 6031165401703265812}
   m_Layer: 0
   m_Name: LWall
   m_TagString: Wall
@@ -384,19 +369,6 @@ BoxCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &6031165401703265812
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6031165401703265811}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}

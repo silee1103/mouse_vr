@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Corridor/MouseTrainScene_Corridor.unity
-    guid: 381a9087c08f45b4983e319694af07ff
+    path: Assets/Scenes/Corridor/TrainScene/MouseTutorialScene_Corridor.unity
+    guid: 86e9eb4107acb71459d5505c5550a9d1
+  - enabled: 1
+    path: Assets/Scenes/Corridor/TrainScene/MouseTrainScene_Corridor.unity
+    guid: 0ef6f3c4bf0f2af469037903a7b9e8e1
   m_configObjects: {}

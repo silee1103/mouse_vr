@@ -61,22 +61,6 @@ public class CharacterMovementHoz : MonoBehaviour
         
     }*/
     
-    bool CheckHitWall(Vector3 movement)
-    {
-        movement = transform.TransformDirection(movement);
-        float scope = 1f;
-
-        Vector3 ray = transform.position + Vector3.up * (_colliderYSize * 0.5f);
-        
-        if (Physics.Raycast(ray, movement, out RaycastHit hit, scope))
-        {
-            if (hit.collider.CompareTag("Wall"))
-                return true;
-        }
-        
-        return false;
-    }
-    
     private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
@@ -111,4 +95,21 @@ public class CharacterMovementHoz : MonoBehaviour
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
     }
+    
+    bool CheckHitWall(Vector3 movement)
+    {
+        movement = transform.TransformDirection(movement);
+        float scope = 1f;
+
+        Vector3 ray = transform.position + Vector3.up * (_colliderYSize * 0.5f);
+        
+        if (Physics.Raycast(ray, movement, out RaycastHit hit, scope))
+        {
+            if (hit.collider.CompareTag("Wall"))
+                return true;
+        }
+        
+        return false;
+    }
+    
 }

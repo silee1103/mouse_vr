@@ -12,7 +12,7 @@ public class AdjustPanel : MonoBehaviour
     public TMP_Text headRealismText;
     private Animator _anim;
     private Animator _cameraAnim;
-    private PlatformTrigger _platformTrigger;
+    private PlatformMaker _platformTrigger;
     
     public TMP_Text corridorSizeText;
     public Slider slider;
@@ -27,7 +27,7 @@ public class AdjustPanel : MonoBehaviour
     {
         _anim = GetComponent<Animator>();
         _cameraAnim = GameObject.FindWithTag("Camera").GetComponent<Animator>();
-        _platformTrigger = GameObject.Find("Animals").GetComponent<PlatformTrigger>();
+        _platformTrigger = GameObject.Find("Animals").GetComponent<PlatformMaker>();
         
         // slider.onValueChanged.AddListener(OnSliderValueChanged);
         corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
@@ -70,6 +70,12 @@ public class AdjustPanel : MonoBehaviour
     {
         // 현재 씬을 다시 로드
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void ResetTutorial()
+    {
+        StatusManager.sm.ResetTutStage();
+        SceneManager.LoadScene("MouseTutorialScene_Corridor");
     }
 
     public void PopUpUI()
