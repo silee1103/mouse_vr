@@ -21,6 +21,8 @@ public class AdjustPanel : MonoBehaviour
     public TMP_Text corridorNumberText;
     public TMP_InputField corridorNumberInput; // corridorNumber 조정용 InputField
     public Button resetButton; // 씬 리셋 버튼
+    public Toggle loopToggle;
+    [SerializeField] private CameraMovement cm;
     
     // Start is called before the first frame update
     void Start()
@@ -32,6 +34,8 @@ public class AdjustPanel : MonoBehaviour
         // slider.onValueChanged.AddListener(OnSliderValueChanged);
         corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
         Invoke("SetUpTexts", 0.1f);
+        loopToggle.isOn = StatusManager.sm.GetLoopFixed();
+        loopToggle.onValueChanged.AddListener(StatusManager.sm.LengthFixedToggle);
     }
 
     void SetUpTexts()
@@ -57,7 +61,9 @@ public class AdjustPanel : MonoBehaviour
         {
             // PlatformTrigger의 corridorNumber 설정
             _platformTrigger.corridorNumber = corridorNumber;
+            _platformTrigger.AddCorrior(corridorNumber);
             corridorNumberText.text = corridorNumber.ToString();
+            StatusManager.sm.SetTutNum(corridorNumber);
             Debug.Log($"Corridor Number updated to: {corridorNumber}");
         }
         else
@@ -98,7 +104,7 @@ public class AdjustPanel : MonoBehaviour
 
     public void HeadRealism()
     {
-        if (_cameraAnim.enabled)
+        if (cm.enabled)
         {
             headRealismText.text = "Off";
         }
@@ -106,8 +112,7 @@ public class AdjustPanel : MonoBehaviour
         {
             headRealismText.text = "On";
         }
-        _cameraAnim.enabled = !_cameraAnim.enabled;
+        cm.enabled = !cm.enabled;
     }
-    
     
 }

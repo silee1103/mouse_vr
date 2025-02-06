@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class CharacterMovementHoz : MonoBehaviour
 {
-    public float speedWorldMul = 1.5f/10f; // by z axis, in game rat size / rat real size (cm)
+    public float speedWorldMul = 1.08f/12f; // by z axis, in game rat size / rat real size (cm)
     public float rotationSpeed = 360f; // 회전 속도 (초당 회전 각도)
     
     private Animator _anim;
@@ -17,7 +17,9 @@ public class CharacterMovementHoz : MonoBehaviour
     // 주기를 제어하기 위한 변수
     private float lastUpdateTime = 0f;
     private float currentSpeed = 0f; // 현재 속도
-    private float targetSpeed = 0f; // 목표 속도
+    public float targetSpeed = 0f; // 목표 속도
+
+    public bool isAuto = false;
 
     private float _colliderYSize;
     
@@ -28,15 +30,17 @@ public class CharacterMovementHoz : MonoBehaviour
         _colliderYSize = GetComponent<BoxCollider>().size.y;
     }
     
-    /*private void FixedUpdate()
+    private void FixedUpdate()
     {
-        // 목표 속도를 주기적으로 갱신
-        if (Time.time - lastUpdateTime >= 0.1)
+        if (!isAuto)
         {
-            targetSpeed = Input.GetAxis("Vertical") * 50;
-            lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
+            // 목표 속도를 주기적으로 갱신
+            if (Time.time - lastUpdateTime >= 0.1)
+            {
+                targetSpeed = Input.GetAxis("Vertical") * 50;
+                lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
+            }
         }
-
         // 현재 속도를 목표 속도로 보간
         currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, 0.1f);
         
@@ -59,15 +63,18 @@ public class CharacterMovementHoz : MonoBehaviour
         float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }*/
+    }
     
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
-        if (Time.time - lastUpdateTime >= pm.sendInterval)
+        if (!isAuto)
         {
-            targetSpeed = pm.speed * 100;
-            lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
+            if (Time.time - lastUpdateTime >= pm.sendInterval)
+            {
+                targetSpeed = pm.speed * 100;
+                lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
+            }
         }
 
         // 현재 속도를 목표 속도로 보간
@@ -94,7 +101,7 @@ public class CharacterMovementHoz : MonoBehaviour
         float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }
+    }*/
     
     bool CheckHitWall(Vector3 movement)
     {

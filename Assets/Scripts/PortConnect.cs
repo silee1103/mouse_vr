@@ -8,20 +8,22 @@ using System;
 public class PortConnect : MonoBehaviour
 {
     private static PortConnect instance;
-    private SerialPort serialPortMain;
+    protected SerialPort serialPortMain;
     private SerialPort serialPortUSB;
     private Thread readThreadMain;
     private Thread readThreadUSB;
     private bool isRunning = false;
     public float speed = 0f;
     public static PortConnect pm;
+    public float speedX = 0f;
+    public float speedY = 0f;
     
     [SerializeField]
-    private string portNameMain = "COM16"; // 사용할 포트 이름
+    protected string portNameMain = "COM16"; // 사용할 포트 이름
     [SerializeField]
-    private string portNameUSB = "COM6"; // 사용할 포트 이름
+    protected string portNameUSB = "COM6"; // 사용할 포트 이름
     [SerializeField]
-    private int baudRate = 9600; // 보드레이트
+    protected int baudRate = 9600; // 보드레이트
     public float sendInterval = 0.1f; // 명령 전송 주기 (초 단위)
     private string command = "R"; // 전송할 명령어 기본값 (종단문자는 \r\n 추가)
 
@@ -86,7 +88,7 @@ public class PortConnect : MonoBehaviour
         }
     }
 
-    private void ReadSerialData()
+    protected void ReadSerialData()
     {
         while (isRunning)
         {

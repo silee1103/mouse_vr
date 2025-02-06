@@ -8,6 +8,11 @@ public class StatusManager : MonoBehaviour
     public static StatusManager sm;
     private int tutNum = 0;
     private int maxTutStage = 10;
+    private bool isLenFixed = false;
+    private int currTrainStage = 0;
+    
+    public int maxCorridor = 17;
+    public int minCorridor = 0;
     
     private void Awake()
     {
@@ -23,12 +28,32 @@ public class StatusManager : MonoBehaviour
     
     public void IncreaseTutStage()
     {
-        tutNum++;
+        if (!isLenFixed)
+        {
+            tutNum++;
+        }
     }
 
     public int GetTutNum()
     {
         return tutNum;
+    }
+    public void SetTutNum(int i)
+    {
+        tutNum = i;
+    }
+
+    public void RandomCurrTrainStage()
+    {
+        if (!isLenFixed)
+        {
+            currTrainStage = Random.Range(minCorridor, maxCorridor);
+        }
+    }
+
+    public int GetCurrTrainStage()
+    {
+        return currTrainStage;
     }
 
     public void ResetTutStage()
@@ -39,5 +64,15 @@ public class StatusManager : MonoBehaviour
     public bool IsTutLeft()
     {
         return tutNum < maxTutStage;
+    }
+
+    public void LengthFixedToggle(bool b)
+    {
+        isLenFixed = b;
+    }
+
+    public bool GetLoopFixed()
+    {
+        return isLenFixed;
     }
 }

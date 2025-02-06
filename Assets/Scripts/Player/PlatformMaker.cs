@@ -1,35 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
-public class PlatformTriggerTrain : PlatformMaker
+public class PlatformMaker : MonoBehaviour
 {
     public GameObject platform;
-    public GameObject endCorridor; // 마지막에 생성할 EndCorridor 프리팹
-    public GameObject existingSectionParent;
-    [SerializeField] private Image _blackImage;
-    [SerializeField] private float _waterOutDuration = 5f;
-    public int maxCorridor = 17;
-    public int minCorridor = 0;
+    public GameObject endCorridor;
+    public GameObject existingSectionParent; // 마지막에 생성할 EndCorridor 프리팹
 
-    private void Start()
+    public int corridorNumber = 0; // 생성할 플랫폼의 수 (-1일 경우 무한 생성)
+    public float platformWidth;
+    [SerializeField] protected List<GameObject> _spawnedPlatforms; // 생성된 플랫폼 관리
+    
+    public void OnSliderValueChanged(float value)
     {
-        platformWidth = 1;
-        _spawnedPlatforms = new List<GameObject>();
-        corridorNumber = Random.Range(minCorridor, maxCorridor);
-        
-        // 기존 섹션의 자식들을 리스트로 추가
-        if (existingSectionParent != null)
+        platformWidth = value;
+        // 모든 생성된 플랫폼의 x local scale 업데이트
+        foreach (GameObject platform in _spawnedPlatforms)
         {
-            // 부모의 자식 객체들을 가져와 리스트에 추가
-            foreach (Transform child in existingSectionParent.transform)
+            if (platform != null)
             {
-                _spawnedPlatforms.Add(child.gameObject);
+                Vector3 currentScale = platform.transform.localScale;
+                platform.transform.localScale = new Vector3(platformWidth, currentScale.y, currentScale.z);
             }
-            
+        }
+    }
+    
+    public void AddCorrior(int num)
+    {
+            while (_spawnedPlatforms.Count > 1)
+            {
+                GameObject platformToRemove = _spawnedPlatforms[1];
+                _spawnedPlatforms.RemoveAt(1);
+                Destroy(platformToRemove);
+            }
             // 마지막으로 추가된 플랫폼 참조
             GameObject lastPlatform = _spawnedPlatforms[_spawnedPlatforms.Count - 1];
 
@@ -45,8 +49,8 @@ public class PlatformTriggerTrain : PlatformMaker
             // 마지막 플랫폼의 끝 위치 계산 (z 좌표)
             float lastPlatformEndZ = lastPlatform.transform.position.z;
 
-            // corridorNumber 만큼 새로운 플랫폼을 한 번에 생성
-            for (int i = 0; i < corridorNumber; i++)
+            // num 만큼 새로운 플랫폼을 한 번에 생성
+            for (int i = 0; i < num; i++)
             {
                 // 새로운 플랫폼 생성
                 GameObject newPlatform = Instantiate(platform, Vector3.zero, Quaternion.identity, existingSectionParent.transform);
@@ -106,42 +110,5 @@ public class PlatformTriggerTrain : PlatformMaker
             newEndCorridor.transform.localScale = new Vector3(platformWidth, platform.transform.localScale.y, platform.transform.localScale.z);
 
             _spawnedPlatforms.Add(newEndCorridor);
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("WaterTrigger"))
-        {
-            StartCoroutine(WaterTrigger());
-        }
-        Destroy(other);
-    }
-
-    private IEnumerator WaterTrigger()
-    {
-        yield return StartCoroutine(FadeInImage(1f));
-        PortConnect.pm.SendWaterSign();
-        yield return new WaitForSeconds(_waterOutDuration);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-    
-    IEnumerator FadeInImage(float duration)
-    {
-        Color color = _blackImage.color;
-        float startAlpha = 0f;
-        float endAlpha = 1f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-            _blackImage.color = new Color(color.r, color.g, color.b, alpha);
-            yield return null;
-        }
-
-        // Ensure final value
-        _blackImage.color = new Color(color.r, color.g, color.b, endAlpha);
     }
 }
