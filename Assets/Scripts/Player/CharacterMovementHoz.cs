@@ -9,9 +9,6 @@ public class CharacterMovementHoz : MonoBehaviour
     private Animator _anim;
     
     [SerializeField]
-    private PortConnect pm;
-    
-    [SerializeField]
     private CameraMovement cameraMovement; // CameraMovement 연결
     
     // 주기를 제어하기 위한 변수
@@ -26,11 +23,10 @@ public class CharacterMovementHoz : MonoBehaviour
     void Start()
     {
         _anim = GetComponentInChildren<Animator>();
-        pm = PortConnect.pm;
         _colliderYSize = GetComponent<BoxCollider>().size.y;
     }
     
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         if (!isAuto)
         {
@@ -60,25 +56,25 @@ public class CharacterMovementHoz : MonoBehaviour
         }
         
         // 카메라 진동 폭 업데이트
-        float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
+        float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(currentSpeed) / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }
+    }*/
     
-    /*private void FixedUpdate()
+    private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
-        if (!isAuto)
+        // 🔹 0.1초마다 targetSpeed 업데이트
+        if (!isAuto && Time.time - lastUpdateTime >= 0.05f)
         {
-            if (Time.time - lastUpdateTime >= pm.sendInterval)
-            {
-                targetSpeed = pm.speed * 100;
-                lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
-            }
+            targetSpeed = PortConnect.instance.speed;
+            // cameraMovement.UpdateAnimationMode(PortConnect.instance.speed);
+            lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
         }
 
+
         // 현재 속도를 목표 속도로 보간
-        currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, 0.1f);
+        currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, 0.5f);
         
         // 움직임 적용
         if (Mathf.Abs(currentSpeed) > 0.1f)
@@ -96,12 +92,8 @@ public class CharacterMovementHoz : MonoBehaviour
         {
             _anim.SetBool("running", false);
         }
-        
-        // 카메라 진동 폭 업데이트
-        float normalizedSpeed = Mathf.Clamp01(currentSpeed / 10f); // 0~10의 값을 0~1로 변환
-        cameraMovement.UpdateAnimationMode(normalizedSpeed);
-        
-    }*/
+
+    }
     
     bool CheckHitWall(Vector3 movement)
     {

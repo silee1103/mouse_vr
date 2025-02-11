@@ -9,8 +9,11 @@ public class PlatformTriggerTut : PlatformMaker
     [SerializeField] private Image _blackImage;
     [SerializeField] private float _waterOutDuration = 5f;
 
+    private MovementRecorder mr;
+
     private void Start()
     {
+        mr = GetComponentInChildren<MovementRecorder>();
         platformWidth = 1;
         _spawnedPlatforms = new List<GameObject>();
         corridorNumber = StatusManager.sm.GetTutNum();
@@ -30,8 +33,13 @@ public class PlatformTriggerTut : PlatformMaker
 
     private void OnTriggerEnter(Collider other)
     {
+        if (corridorNumber < 0 && other.gameObject.CompareTag("PlatformTrigger"))
+        {
+            AddCorrior(-56);
+        }
         if (other.gameObject.CompareTag("WaterTrigger"))
         {
+            mr.RecordLick();
             StartCoroutine(WaterTrigger());
         }
         Destroy(other);
@@ -40,7 +48,7 @@ public class PlatformTriggerTut : PlatformMaker
     private IEnumerator WaterTrigger()
     {
         yield return StartCoroutine(FadeInImage(1f));
-        PortConnect.pm.SendWaterSign();
+        PortConnect.instance.SendLickCommand();
         yield return new WaitForSeconds(_waterOutDuration);
         if (StatusManager.sm.IsTutLeft()){
             StatusManager.sm.IncreaseTutStage();

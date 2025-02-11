@@ -136,7 +136,7 @@ public class PlatformTrigger : PlatformMaker
     private IEnumerator WaterTrigger()
     {
         yield return StartCoroutine(FadeInImage(1f));
-        PortConnect.pm.SendWaterSign();
+        PortConnect.instance.SendLickCommand();
         yield return new WaitForSeconds(_waterOutDuration);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }

@@ -74,7 +74,7 @@ public class CharacterMovement : MonoBehaviour
 
         // 카메라 진동 폭 업데이트
         float normalizedSpeed = Mathf.Clamp01(Mathf.Sqrt(currentSpeedX * currentSpeedX + currentSpeedZ * currentSpeedZ) / 10f);
-        cameraMovement.UpdateAnimationMode(normalizedSpeed);
+        // cameraMovement.UpdateAnimationMode(normalizedSpeed);
     }
     
     bool CheckHitWall(Vector3 movement)

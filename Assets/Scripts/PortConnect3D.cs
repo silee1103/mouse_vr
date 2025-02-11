@@ -7,7 +7,7 @@ using System.IO.Ports;
 
 public class PortConnect3D : PortConnect
 {
-    private bool isRunning = false;
+    /*private bool isRunning = false;
 
     // 읽은 패킷을 저장할 큐 (스레드 안전)
     private Queue<SensorPacket> packetQueue = new Queue<SensorPacket>();
@@ -39,7 +39,7 @@ public class PortConnect3D : PortConnect
         {
             try
             {
-                int b = serialPortMain.ReadByte();
+                int b = serialPort.ReadByte();
                 if (b == -1) continue;
                 buffer.Add((byte)b);
 
@@ -127,5 +127,5 @@ public class PortConnect3D : PortConnect
 
         // 예시: 센서1의 누적 움직임을 오브젝트의 위치로 반영 (스케일 조정)
         transform.position = new Vector3(sensor1TotalMovement.x * 0.01f, sensor1TotalMovement.y * 0.01f, 0);
-    }
+    }*/
 }

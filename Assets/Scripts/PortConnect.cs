@@ -1,41 +1,60 @@
+using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO.Ports;
 using System.Threading;
-using System;
+using System.Text;
+using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class PortConnect : MonoBehaviour
 {
-    private static PortConnect instance;
-    protected SerialPort serialPortMain;
-    private SerialPort serialPortUSB;
-    private Thread readThreadMain;
-    private Thread readThreadUSB;
-    private bool isRunning = false;
-    public float speed = 0f;
-    public static PortConnect pm;
-    public float speedX = 0f;
-    public float speedY = 0f;
-    
-    [SerializeField]
-    protected string portNameMain = "COM16"; // 사용할 포트 이름
-    [SerializeField]
-    protected string portNameUSB = "COM6"; // 사용할 포트 이름
-    [SerializeField]
-    protected int baudRate = 9600; // 보드레이트
-    public float sendInterval = 0.1f; // 명령 전송 주기 (초 단위)
-    private string command = "R"; // 전송할 명령어 기본값 (종단문자는 \r\n 추가)
+    // 싱글턴 인스턴스 (여러 씬에서 유지할 경우)
+    public static PortConnect instance;
 
-    private void Awake()
+    [Header("Serial Port Settings")]
+    [SerializeField] private string portName = "COM16";  // 환경에 맞게 변경
+    [SerializeField] private int baudRate = 115200;        // Arduino와 동일
+
+    // 디버그 로그 활성화 여부 (true이면 로그 출력)
+    public bool DEBUG = true;
+    public int TXTRANDOM = 0;
+
+    private SerialPort serialPort;
+    private Thread readThread;
+    private bool isRunning = false;
+
+    // 스레드 안전 메시지 큐 (바이너리 메시지)
+    private Queue<byte[]> messageQueue = new Queue<byte[]>();
+    private readonly object queueLock = new object();
+
+    // Arduino에서 받은 데이터 (바이너리 메시지)
+    public uint startTime = 0;    // START 메시지의 startTime (4바이트)
+    public uint elapsedTime = 0;  // DATA 메시지의 경과 시간 (4바이트, 마이크로초 단위)
+    public uint elapsedTimeIntervalPre = 0;
+    public uint elapsedTimeIntervalCurr = 0;
+    public uint encoderCount = 0; // DATA 메시지의 encoderCount (4바이트)
+
+    [Header("Position & Speed Settings")]
+    // tick 당 이동 거리 (예: 0.1 cm)
+    public float distancePerTick = 0.1f;
+    public float position = 0f;   // 누적 위치 (cm)
+    public float speed = 0f;      // 평균 속도 (cm/s)
+
+    // 디버그 로그 출력 간격 (초)
+    private float lastLogTime = 0f;
+    private float logInterval = 1f; // 1초에 한 번 로그 출력
+
+    void Awake()
     {
-        if (pm != null && pm != this)
+        // 싱글턴 패턴 적용
+        if (instance != null && instance != this)
         {
-            Destroy(gameObject); // 이미 존재하는 인스턴스가 있다면 새로운 객체 제거
+            Destroy(gameObject);
             return;
         }
-
-        pm = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -43,110 +62,213 @@ public class PortConnect : MonoBehaviour
     {
         try
         {
-            serialPortMain = new SerialPort(portNameMain, baudRate);
-            serialPortMain.Open();
-            serialPortMain.ReadTimeout = 1000;
-            Debug.Log("Serial Port Opened: " + portNameMain);
-            
-            serialPortUSB = new SerialPort(portNameUSB, baudRate);
-            serialPortUSB.Open();
-            serialPortUSB.ReadTimeout = 1000;
-            Debug.Log("Serial Port Opened: " + portNameUSB);
-
+            serialPort = new SerialPort(portName, baudRate);
+            serialPort.ReadTimeout = 1000;
+            serialPort.Open();
+            if (DEBUG)
+            {
+                Debug.Log("[DEBUG] Serial Port Opened: " + portName);
+            }
             isRunning = true;
-            readThreadMain = new Thread(ReadSerialData);
-            readThreadMain.Start();
-
-            InvokeRepeating(nameof(SendCommand), 0f, sendInterval);
+            readThread = new Thread(ReadSerial);
+            readThread.Start();
         }
         catch (Exception e)
         {
-            Debug.LogError("Failed to open serial port: " + e.Message);
+            Debug.LogError("[DEBUG] Failed to open serial port: " + e.Message);
         }
     }
 
-    public void SendWaterSign()
+    void Update()
     {
-        if (serialPortUSB != null && serialPortUSB.IsOpen)
-        {
-            serialPortUSB.Write("1");
-            Debug.Log("Sent Water Signal to COM6");
-        }
-        else
-        {
-            Debug.LogError("COM6 not available");
-        }
-    }
+        // 메시지 큐에 쌓인 데이터를 처리
+        ProcessMessageQueue();
 
+        // 전달받은 데이터를 기반으로 포지션 및 속도 계산
+        // speed = encoderCount / 120 * 2 * Mathf.PI * 0.1;
+        position = encoderCount * Mathf.PI / 6.0f * 5;
+        // position = encoderCount * distancePerTick * 5f/ 3f * Mathf.PI; // * 100(m to cm)/120(tick number)*2pi
+        float elapsedSec = (elapsedTimeIntervalCurr - elapsedTimeIntervalPre) / 100f;  // 소주점 둘째 자리 -> 초 단위
+        speed = ( (elapsedSec > 0f) ? position / elapsedSec : 0f);
 
-    private void SendCommand()
-    {
-        if (serialPortMain != null && serialPortMain.IsOpen)
+        // 지정한 간격마다 디버그 로그 출력
+        if (Time.time - lastLogTime >= logInterval)
         {
-            string fullCommand = command + "\r\n";
-            serialPortMain.Write(fullCommand);
+            lastLogTime = Time.time;
+            Debug.Log($"[DEBUG] Position: {position:F2} cm, Speed: {speed:F2} cm/s, Encoder Count: {encoderCount}, Elapsed Time: {elapsedTime} us");
         }
     }
 
-    protected void ReadSerialData()
+    void OnApplicationQuit()
     {
+        isRunning = false;
+        if (readThread != null && readThread.IsAlive)
+        {
+            readThread.Join();
+        }
+        if (serialPort != null && serialPort.IsOpen)
+        {
+            serialPort.Close();
+        }
+    }
+
+    // 별도의 스레드에서 Arduino로부터 Serial 데이터를 읽어 내부 버퍼에 추가
+    void ReadSerial()
+    {
+        List<byte> buffer = new List<byte>();
         while (isRunning)
         {
             try
             {
-                if (serialPortMain != null && serialPortMain.IsOpen)
+                int bytesToRead = serialPort.BytesToRead;
+                if (bytesToRead > 0)
                 {
-                    string incomingData = serialPortMain.ReadLine();
-                    if (float.TryParse(incomingData, out float numericValue))
+                    byte[] temp = new byte[bytesToRead];
+                    int bytesRead = serialPort.Read(temp, 0, bytesToRead);
+                    buffer.AddRange(temp);
+
+                    if (DEBUG)
                     {
-                        speed = (numericValue / 120) * (210 * (float)Math.PI) / 100;
+                        Debug.Log($"[DEBUG] Received {bytesRead} bytes: {BitConverter.ToString(temp)}");
                     }
-                    else
+
+                    // 버퍼 내에서 0xAA 헤더를 기준으로 메시지 프레임을 정렬
+                    while (buffer.Count >= 2)
                     {
-                        Debug.LogWarning("Received non-numeric data: " + incomingData);
-                        speed = numericValue;
+                        int headerIndex = buffer.IndexOf(0xAA);
+                        if (headerIndex < 0)
+                        {
+                            // 헤더가 없으면 버퍼를 모두 삭제
+                            buffer.Clear();
+                            break;
+                        }
+                        if (headerIndex > 0)
+                        {
+                            // 헤더 이전의 데이터는 버림
+                            buffer.RemoveRange(0, headerIndex);
+                        }
+                        if (buffer.Count < 2)
+                        {
+                            break;  // 메시지 타입까지 수신하지 못한 경우 대기
+                        }
+                        byte msgType = buffer[1];
+                        // 메시지 길이 결정 (0x02: START 메시지 = 6바이트, 0x01: DATA 메시지 = 10바이트)
+                        int msgLength = (msgType == 0x02) ? 6 : (msgType == 0x01 ? 10 : -1);
+                        if (msgLength == -1)
+                        {
+                            // 알 수 없는 메시지 타입이면 헤더 바이트 제거 후 재시도
+                            buffer.RemoveAt(0);
+                            continue;
+                        }
+                        if (buffer.Count < msgLength)
+                        {
+                            // 전체 메시지가 수신되지 않은 경우 대기
+                            break;
+                        }
+                        // 완전한 메시지 추출
+                        byte[] message = buffer.GetRange(0, msgLength).ToArray();
+                        buffer.RemoveRange(0, msgLength);
+                        lock (queueLock)
+                        {
+                            messageQueue.Enqueue(message);
+                        }
+                        if (DEBUG)
+                        {
+                            Debug.Log($"[DEBUG] Enqueued message of type {msgType} with length {msgLength}");
+                        }
                     }
                 }
             }
             catch (TimeoutException)
             {
-                // 시간 초과 예외 무시
+                // ReadTimeout은 무시
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debug.LogError("Error reading from serial port: " + e.Message);
+                Debug.LogError("[DEBUG] Serial read error: " + ex.Message);
+            }
+            Thread.Sleep(10);  // CPU 사용률 낮추기 위한 대기
+        }
+    }
+
+    // 메시지 큐에 쌓인 바이너리 메시지를 처리
+    void ProcessMessageQueue()
+    {
+        lock (queueLock)
+        {
+            while (messageQueue.Count > 0)
+            {
+                byte[] msg = messageQueue.Dequeue();
+                ParseMessage(msg);
             }
         }
     }
 
-    private void OnApplicationQuit()
+    // 바이너리 메시지 파싱
+    // START 메시지 (6바이트): [0xAA][0x02][startTime (4바이트)]
+    // DATA 메시지 (10바이트): [0xAA][0x01][elapsedTime (4바이트)][encoderCount (4바이트)]
+    void ParseMessage(byte[] msg)
     {
-        Cleanup();
+        if (msg.Length < 2)
+            return;
+
+        byte msgType = msg[1];
+        if (msgType == 0x02 && msg.Length == 6)
+        {
+            startTime = BitConverter.ToUInt32(msg, 2);
+            if (DEBUG)
+            {
+                Debug.Log("[DEBUG] START message received. Start time: " + startTime);
+            }
+        }
+        else if (msgType == 0x01 && msg.Length == 10)
+        {
+            elapsedTime = BitConverter.ToUInt32(msg, 2);
+            elapsedTimeIntervalPre = elapsedTimeIntervalCurr;
+            elapsedTimeIntervalCurr = elapsedTime;
+            encoderCount = BitConverter.ToUInt32(msg, 6);
+            if (DEBUG)
+            {
+                Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} us, Encoder: {encoderCount}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[DEBUG] Unknown message received. Type: {msgType}, Length: {msg.Length}");
+        }
     }
 
-    private void Cleanup()
+    // Arduino로 명령어 전송 (예: "RESET", "LICK")
+    public void SendCommand(string cmd)
     {
-        isRunning = false;
-        if (readThreadMain != null && readThreadMain.IsAlive)
+        if (serialPort != null && serialPort.IsOpen)
         {
-            readThreadMain.Join();
+            string fullCmd = cmd + "\n";
+            byte[] commandBytes = Encoding.ASCII.GetBytes(fullCmd);
+            serialPort.Write(commandBytes, 0, commandBytes.Length);
+            serialPort.BaseStream.Flush();
+            if (DEBUG)
+            {
+                Debug.Log("[DEBUG] Sent command: " + cmd);
+            }
         }
-        
-        if (readThreadUSB != null && readThreadUSB.IsAlive)
-        {
-            readThreadUSB.Join();
-        }
+    }
 
-        if (serialPortMain != null && serialPortMain.IsOpen)
-        {
-            serialPortMain.Close();
-            Debug.Log("Serial Port Closed");
-        }
+    // 릭포트(보상) 실행 명령 ("1" 또는 "LICK")
+    public void SendLickCommand()
+    {
+        SendCommand("1");
+    }
+
+    // 측정 리셋 명령 ("RESET")
+    public void SendResetCommand()
+    {
         
-        if (serialPortUSB != null && serialPortUSB.IsOpen)
-        {
-            serialPortUSB.Close();
-            Debug.Log("Serial Port Closed");
-        }
+        SendCommand("RESET");
+    }
+    
+    public void SendStartCommand()
+    {
+        SendCommand("3");
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class AdjustPanel : MonoBehaviour
 {
@@ -70,6 +71,20 @@ public class AdjustPanel : MonoBehaviour
         {
             Debug.LogError("Invalid corridorNumber input!");
         }
+    }
+
+    public void ResetMeasureH()
+    {
+        StartCoroutine(ResetMeasure());
+    }
+    
+    
+    public IEnumerator ResetMeasure()
+    {
+        PortConnect.instance.SendResetCommand();
+        PortConnect.instance.SendStartCommand();
+        PortConnect.instance.TXTRANDOM = Random.Range(0, 500);
+        yield return new WaitForSeconds(5.0f);
     }
 
     public void ResetScene()
