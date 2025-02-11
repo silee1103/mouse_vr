@@ -26,7 +26,7 @@ public class CharacterMovementHoz : MonoBehaviour
         _colliderYSize = GetComponent<BoxCollider>().size.y;
     }
     
-    /*private void FixedUpdate()
+    private void FixedUpdate()
     {
         if (!isAuto)
         {
@@ -59,9 +59,9 @@ public class CharacterMovementHoz : MonoBehaviour
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(currentSpeed) / 10f); // 0~10의 값을 0~1로 변환
         cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
-    }*/
+    }
     
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         // 목표 속도를 주기적으로 갱신
         // 🔹 0.1초마다 targetSpeed 업데이트
@@ -93,7 +93,7 @@ public class CharacterMovementHoz : MonoBehaviour
             _anim.SetBool("running", false);
         }
 
-    }
+    }*/
     
     bool CheckHitWall(Vector3 movement)
     {
