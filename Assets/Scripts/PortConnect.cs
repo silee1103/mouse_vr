@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
 using System.Text;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -20,6 +21,7 @@ public class PortConnect : MonoBehaviour
     // 디버그 로그 활성화 여부 (true이면 로그 출력)
     public bool DEBUG = true;
     public int TXTRANDOM = 0;
+    public MovementRecorder mr;
 
     private SerialPort serialPort;
     private Thread readThread;
@@ -56,6 +58,23 @@ public class PortConnect : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+        TXTRANDOM = Random.Range(0, 500);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 새 씬이 로드될 때 MovementRecorder 찾기
+        mr = FindObjectOfType<MovementRecorder>();
+
+        if (mr == null)
+        {
+            Debug.LogWarning($"[DEBUG] No MovementRecorder found in scene '{scene.name}'");
+        }
+        else
+        {
+            Debug.Log($"[DEBUG] Found MovementRecorder in scene '{scene.name}'");
+        }
     }
 
     void Start()
@@ -79,7 +98,7 @@ public class PortConnect : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         // 메시지 큐에 쌓인 데이터를 처리
         ProcessMessageQueue();
@@ -88,9 +107,11 @@ public class PortConnect : MonoBehaviour
         // speed = encoderCount / 120 * 2 * Mathf.PI * 0.1;
         position = encoderCount * Mathf.PI / 6.0f * 5;
         // position = encoderCount * distancePerTick * 5f/ 3f * Mathf.PI; // * 100(m to cm)/120(tick number)*2pi
-        float elapsedSec = (elapsedTimeIntervalCurr - elapsedTimeIntervalPre) / 100f;  // 소주점 둘째 자리 -> 초 단위
+        float elapsedSec = (elapsedTimeIntervalCurr - elapsedTimeIntervalPre) / 1000f;  // ms -> s 단위 //TODO? : / 100f
         speed = ( (elapsedSec > 0f) ? position / elapsedSec : 0f);
 
+        mr.Record();
+        
         // 지정한 간격마다 디버그 로그 출력
         if (Time.time - lastLogTime >= logInterval)
         {
@@ -257,18 +278,28 @@ public class PortConnect : MonoBehaviour
     // 릭포트(보상) 실행 명령 ("1" 또는 "LICK")
     public void SendLickCommand()
     {
-        SendCommand("1");
+        SendCommand("L");
     }
 
     // 측정 리셋 명령 ("RESET")
     public void SendResetCommand()
     {
-        
-        SendCommand("RESET");
+        SendCommand("R");
+        mr.SaveRemainingBuffer();
     }
     
     public void SendStartCommand()
     {
-        SendCommand("3");
+        SendCommand("S");
+    }
+    
+    public void SendTriggerCommand()
+    {
+        SendCommand("T");
+    }
+    
+    public void SendEndCommand()
+    {
+        SendCommand("E");
     }
 }

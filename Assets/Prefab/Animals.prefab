@@ -346,7 +346,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8287130907694080724}
   - component: {fileID: 8287130907694080726}
-  - component: {fileID: 8287130907694080809}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Camera
@@ -395,20 +394,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &8287130907694080809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8287130907694080725}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8a1a5a1e3f3f594bb7229d3eb9f6604, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  defaultDuration: 0.5
-  activeDuration: 0.5
 --- !u!1 &8287130907783151294
 GameObject:
   m_ObjectHideFlags: 0
@@ -505,7 +490,6 @@ GameObject:
   - component: {fileID: 8287130908233465150}
   - component: {fileID: 8287130908233465151}
   - component: {fileID: 8287130908233465137}
-  - component: {fileID: 8287130908233465136}
   m_Layer: 0
   m_Name: Animals
   m_TagString: Untagged
@@ -543,10 +527,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d570ef2f6531a0e4a9bf6c2714ccd023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speedWorldMul: 0.15
   rotationSpeed: 480
-  pm: {fileID: 0}
-  cameraMovement: {fileID: 8287130907694080809}
+  cameraMovement: {fileID: 0}
+  targetSpeed: 0
+  isAuto: 0
 --- !u!54 &8287130908233465151
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -576,25 +560,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5, z: 1.08}
   m_Center: {x: 0, y: 0.26252133, z: 0.022647917}
---- !u!114 &8287130908233465136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8287130908233465149}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a326b7d24c5d4874895c50b65428c8bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  platform: {fileID: 6031165401544879725, guid: 4743349d7f742f047a64402aa3e7b6c1, type: 3}
-  endCorridor: {fileID: 8864144008074213403, guid: 04a77ea4944a277418670deb63e6fde7, type: 3}
-  platformWidth: 0
-  existingSectionParent: {fileID: 0}
-  corridorNumber: 1
-  _blackImage: {fileID: 0}
-  _waterOutDuration: 5
 --- !u!1 &8287130908594834488
 GameObject:
   m_ObjectHideFlags: 0

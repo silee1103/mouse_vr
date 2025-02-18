@@ -23,7 +23,6 @@ public class AdjustPanel : MonoBehaviour
     public TMP_InputField corridorNumberInput; // corridorNumber 조정용 InputField
     public Button resetButton; // 씬 리셋 버튼
     public Toggle loopToggle;
-    [SerializeField] private CameraMovement cm;
     
     // Start is called before the first frame update
     void Start()
@@ -81,8 +80,9 @@ public class AdjustPanel : MonoBehaviour
     
     public IEnumerator ResetMeasure()
     {
+        // PortConnect.instance.SendEndCommand();
         PortConnect.instance.SendResetCommand();
-        PortConnect.instance.SendStartCommand();
+        PortConnect.instance.SendTriggerCommand();
         PortConnect.instance.TXTRANDOM = Random.Range(0, 500);
         yield return new WaitForSeconds(5.0f);
     }
@@ -116,18 +116,4 @@ public class AdjustPanel : MonoBehaviour
     {
         uiPopUp.interactable = true;
     }
-
-    public void HeadRealism()
-    {
-        if (cm.enabled)
-        {
-            headRealismText.text = "Off";
-        }
-        else
-        {
-            headRealismText.text = "On";
-        }
-        cm.enabled = !cm.enabled;
-    }
-    
 }

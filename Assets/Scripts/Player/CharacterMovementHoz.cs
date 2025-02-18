@@ -3,13 +3,11 @@ using System.Collections.Generic;
 
 public class CharacterMovementHoz : MonoBehaviour
 {
-    public float speedWorldMul = 1.08f/12f; // by z axis, in game rat size / rat real size (cm)
+    private float speedWorldMul = 1.08f/12f; // by z axis, in game rat size / rat real size (cm)
     public float rotationSpeed = 360f; // 회전 속도 (초당 회전 각도)
     
     private Animator _anim;
     
-    [SerializeField]
-    private CameraMovement cameraMovement; // CameraMovement 연결
     
     // 주기를 제어하기 위한 변수
     private float lastUpdateTime = 0f;
@@ -57,7 +55,6 @@ public class CharacterMovementHoz : MonoBehaviour
         
         // 카메라 진동 폭 업데이트
         float normalizedSpeed = Mathf.Clamp01(Mathf.Abs(currentSpeed) / 10f); // 0~10의 값을 0~1로 변환
-        cameraMovement.UpdateAnimationMode(normalizedSpeed);
         
     }
     
@@ -68,7 +65,6 @@ public class CharacterMovementHoz : MonoBehaviour
         if (!isAuto && Time.time - lastUpdateTime >= 0.05f)
         {
             targetSpeed = PortConnect.instance.speed;
-            // cameraMovement.UpdateAnimationMode(PortConnect.instance.speed);
             lastUpdateTime = Time.time; // 마지막 갱신 시간 업데이트
         }
 

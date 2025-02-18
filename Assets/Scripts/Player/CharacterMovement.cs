@@ -9,9 +9,6 @@ public class CharacterMovement : MonoBehaviour
     
     private Animator _anim;
     
-    [SerializeField]
-    private CameraMovement cameraMovement; // CameraMovement 연결
-    
     // 주기를 제어하기 위한 변수
     private float lastUpdateTime = 0f;
     

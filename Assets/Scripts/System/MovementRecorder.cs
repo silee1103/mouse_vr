@@ -19,7 +19,7 @@ public class MovementRecorder : MonoBehaviour
     private Queue<(Vector3 position, float rotation, float time, float speed)> savingBuffer;  // Saving Buffer
     private float saveTimer = 0f; // 저장 타이머
     private string dirPath;
-    private int randomExpNum;
+    // private int randomExpNum;
 
     private void Awake()
     {
@@ -33,13 +33,11 @@ public class MovementRecorder : MonoBehaviour
         movementBuffer = new Queue<(Vector3, float, float, float)>(bufferSize);
         savingBuffer = new Queue<(Vector3, float, float, float)>(bufferSize);
         dirPath = Application.persistentDataPath;
-        randomExpNum = PortConnect.instance.TXTRANDOM;
+        // randomExpNum = PortConnect.instance.TXTRANDOM;
     }
 
     private void Update()
     {
-        RecordPosition(transform.position, transform.rotation.eulerAngles.y, PortConnect.instance.elapsedTime/100f, PortConnect.instance.speed);
-
         // 저장 타이머 업데이트
         saveTimer += Time.deltaTime;
         if (saveTimer >= saveInterval)
@@ -47,6 +45,11 @@ public class MovementRecorder : MonoBehaviour
             saveTimer = 0f;
             SaveBufferAsync(); // 데이터를 비동기로 저장
         }
+    }
+
+    public void Record()
+    {
+        RecordPosition(transform.position, transform.rotation.eulerAngles.y, PortConnect.instance.elapsedTime/1000f, PortConnect.instance.speed); // TODO? : /100f
     }
 
     public void RecordLick()
@@ -75,7 +78,7 @@ public class MovementRecorder : MonoBehaviour
             movementBuffer.Clear();
         }
         
-        string path = dirPath + $"/MovementData{randomExpNum}.txt";
+        string path = dirPath + $"/MovementData{PortConnect.instance.TXTRANDOM}.txt";
 
         // 비동기로 파일 저장
         await Task.Run(() =>
@@ -94,9 +97,9 @@ public class MovementRecorder : MonoBehaviour
         Debug.Log("Movement data saved in "+ path);
     }
     
-    private void SaveRemainingBuffer()
+    public void SaveRemainingBuffer()
     {
-        string path = dirPath + $"/MovementData{randomExpNum}.txt";
+        string path = dirPath + $"/MovementData{PortConnect.instance.TXTRANDOM}.txt";
         
         
         lock (savingBuffer)
@@ -108,7 +111,7 @@ public class MovementRecorder : MonoBehaviour
                     while (savingBuffer.Count > 0)
                     {
                         var data = savingBuffer.Dequeue();
-                        writer.WriteLine($"{data.time},{data.position.x * 11.11},{data.position.z * 11.11},{data.rotation},{data.speed}");
+                        writer.WriteLine($"{data.time},{data.position.x * 11.11},{data.position.z * 11.11},{data.rotation},{data.speed * 1.08f/12f}");
                     }
                 }
                 Debug.Log("Remaining movement data saved in " + path);

@@ -41,7 +41,6 @@ public class PlatformTriggerTrain : PlatformMaker
         }
         if (other.gameObject.CompareTag("WaterTrigger"))
         {
-            mr.RecordLick();
             StartCoroutine(WaterTrigger());
         }
         Destroy(other);
@@ -50,6 +49,7 @@ public class PlatformTriggerTrain : PlatformMaker
     private IEnumerator WaterTrigger()
     {
         yield return StartCoroutine(FadeInImage(1f));
+        mr.RecordLick();
         PortConnect.instance.SendLickCommand();
         yield return new WaitForSeconds(_waterOutDuration);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
