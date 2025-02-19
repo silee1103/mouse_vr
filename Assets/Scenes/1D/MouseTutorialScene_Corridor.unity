@@ -862,7 +862,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &407613718
 GameObject:
@@ -2189,7 +2189,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1130358195
 MonoBehaviour:
@@ -4416,7 +4416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef1d5d1e22ee8f24aa1f86e5cdcb5a92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platform: {fileID: 6031165401544879725, guid: 4743349d7f742f047a64402aa3e7b6c1, type: 3}
+  platform: {fileID: 6031165401544879725, guid: ca3578bdba3a62b4c89842a41746ec60, type: 3}
   endCorridor: {fileID: 8864144008074213403, guid: 04a77ea4944a277418670deb63e6fde7, type: 3}
   existingSectionParent: {fileID: 1702878080}
   corridorNumber: -1

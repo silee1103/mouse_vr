@@ -16,7 +16,7 @@ public class PlatformTriggerTut : PlatformMaker
         mr = GetComponentInChildren<MovementRecorder>();
         platformWidth = 1;
         _spawnedPlatforms = new List<GameObject>();
-        corridorNumber = StatusManager.sm.GetTutNum();
+        corridorNumber = StatusManager.instance.GetTutNum();
         
         // 기존 섹션의 자식들을 리스트로 추가
         if (existingSectionParent != null)
@@ -50,8 +50,8 @@ public class PlatformTriggerTut : PlatformMaker
         mr.RecordLick();
         PortConnect.instance.SendLickCommand();
         yield return new WaitForSeconds(_waterOutDuration);
-        if (StatusManager.sm.IsTutLeft()){
-            StatusManager.sm.IncreaseTutStage();
+        if (StatusManager.instance.IsTutLeft()){
+            StatusManager.instance.IncreaseTutStage();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
         else

@@ -78,7 +78,7 @@ public class MovementRecorder : MonoBehaviour
             movementBuffer.Clear();
         }
         
-        string path = dirPath + $"/MovementData{PortConnect.instance.TXTRANDOM}.txt";
+        string path = dirPath + $"/MovementData{StatusManager.instance.TXTRANDOM}.txt";
 
         // 비동기로 파일 저장
         await Task.Run(() =>
@@ -99,7 +99,7 @@ public class MovementRecorder : MonoBehaviour
     
     public void SaveRemainingBuffer()
     {
-        string path = dirPath + $"/MovementData{PortConnect.instance.TXTRANDOM}.txt";
+        string path = dirPath + $"/MovementData{StatusManager.instance.TXTRANDOM}.txt";
         
         
         lock (savingBuffer)

@@ -17,8 +17,8 @@ public class PlatformTriggerTrain : PlatformMaker
         mr = GetComponentInChildren<MovementRecorder>();
         platformWidth = 1;
         _spawnedPlatforms = new List<GameObject>();
-        StatusManager.sm.RandomCurrTrainStage();
-        corridorNumber = StatusManager.sm.GetCurrTrainStage();
+        StatusManager.instance.RandomCurrTrainStage();
+        corridorNumber = StatusManager.instance.GetCurrTrainStage();
         
         // 기존 섹션의 자식들을 리스트로 추가
         if (existingSectionParent != null)

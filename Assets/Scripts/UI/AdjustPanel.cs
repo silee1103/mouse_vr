@@ -17,8 +17,7 @@ public class AdjustPanel : MonoBehaviour
     
     public TMP_Text corridorSizeText;
     public Slider slider;
-    private int _maxSize = 12;
-    
+    public MovementRecorder mr;
     public TMP_Text corridorNumberText;
     public TMP_InputField corridorNumberInput; // corridorNumber 조정용 InputField
     public Button resetButton; // 씬 리셋 버튼
@@ -34,16 +33,29 @@ public class AdjustPanel : MonoBehaviour
         // slider.onValueChanged.AddListener(OnSliderValueChanged);
         corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
         Invoke("SetUpTexts", 0.1f);
-        loopToggle.isOn = StatusManager.sm.GetLoopFixed();
-        loopToggle.onValueChanged.AddListener(StatusManager.sm.LengthFixedToggle);
+        loopToggle.isOn = StatusManager.instance.GetLoopFixed();
+        loopToggle.onValueChanged.AddListener(StatusManager.instance.LengthFixedToggle);
+        
+        // 새 씬이 로드될 때 MovementRecorder 찾기
+        mr = FindObjectOfType<MovementRecorder>();
+
+        if (mr == null)
+        {
+            Debug.LogWarning($"[DEBUG] No MovementRecorder found in scene");
+        }
+        else
+        {
+            Debug.Log($"[DEBUG] Found MovementRecorder in scene");
+        }
     }
 
     void SetUpTexts()
     {
-        slider.value = _maxSize / 2;
-        corridorSizeText.text = (_maxSize / 2).ToString();
+        slider.value = StatusManager.instance.GetCorridorWidth();
+        corridorSizeText.text = (StatusManager.instance.GetCorridorWidth()).ToString();
         
         corridorNumberText.text = _platformTrigger.corridorNumber.ToString();
+        _platformTrigger.OnSliderValueChanged(StatusManager.instance.GetCorridorWidth()/StatusManager.instance.GetCorridorMaxWidth()*2);
     }
     
     public void OnSliderValueChanged(float value)
@@ -51,7 +63,8 @@ public class AdjustPanel : MonoBehaviour
         if (corridorSizeText != null)
         {
             corridorSizeText.text = value.ToString("F2");
-            _platformTrigger.OnSliderValueChanged(value/_maxSize*2);
+            _platformTrigger.OnSliderValueChanged(value/StatusManager.instance.GetCorridorMaxWidth()*2);
+            StatusManager.instance.SetCorridorWidth(value);
         }
     }
     
@@ -63,7 +76,7 @@ public class AdjustPanel : MonoBehaviour
             _platformTrigger.corridorNumber = corridorNumber;
             _platformTrigger.AddCorrior(corridorNumber);
             corridorNumberText.text = corridorNumber.ToString();
-            StatusManager.sm.SetTutNum(corridorNumber);
+            StatusManager.instance.SetTutNum(corridorNumber);
             Debug.Log($"Corridor Number updated to: {corridorNumber}");
         }
         else
@@ -82,8 +95,9 @@ public class AdjustPanel : MonoBehaviour
     {
         // PortConnect.instance.SendEndCommand();
         PortConnect.instance.SendResetCommand();
+        mr.SaveRemainingBuffer();
         PortConnect.instance.SendTriggerCommand();
-        PortConnect.instance.TXTRANDOM = Random.Range(0, 500);
+        StatusManager.instance.TXTRANDOM = Random.Range(0, 500);
         yield return new WaitForSeconds(5.0f);
     }
 
@@ -95,7 +109,7 @@ public class AdjustPanel : MonoBehaviour
 
     public void ResetTutorial()
     {
-        StatusManager.sm.ResetTutStage();
+        StatusManager.instance.ResetTutStage();
         SceneManager.LoadScene("MouseTutorialScene_Corridor");
     }
 

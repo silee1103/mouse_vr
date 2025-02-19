@@ -5,26 +5,32 @@ using UnityEngine;
 
 public class StatusManager : MonoBehaviour
 {
-    public static StatusManager sm;
+    public static StatusManager instance;
     private int tutNum = 0;
     private int maxTutStage = 10;
     private bool isLenFixed = false;
     private int currTrainStage = 0;
+    private float corridorWidth = 12;
+    private float _maxSize = 12;
+    public int TXTRANDOM = 0;
     
     public int maxCorridor = 17;
     public int minCorridor = 0;
     
     private void Awake()
     {
-        if (sm != null && sm != this)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject); // 이미 존재하는 인스턴스가 있다면 새로운 객체 제거
             return;
         }
 
-        sm = this;
+        instance = this;
         DontDestroyOnLoad(gameObject);
+        corridorWidth = _maxSize / 2;
+        TXTRANDOM = Random.Range(0, 500);
     }
+    
     
     public void IncreaseTutStage()
     {
@@ -32,6 +38,21 @@ public class StatusManager : MonoBehaviour
         {
             tutNum++;
         }
+    }
+
+    public float GetCorridorMaxWidth()
+    {
+        return _maxSize;
+    }
+    
+    public float GetCorridorWidth()
+    {
+        return corridorWidth;
+    }
+
+    public void SetCorridorWidth(float v)
+    {
+        corridorWidth = v;
     }
 
     public int GetTutNum()

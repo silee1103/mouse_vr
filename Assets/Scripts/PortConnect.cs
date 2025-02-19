@@ -20,7 +20,6 @@ public class PortConnect : MonoBehaviour
 
     // 디버그 로그 활성화 여부 (true이면 로그 출력)
     public bool DEBUG = true;
-    public int TXTRANDOM = 0;
     public MovementRecorder mr;
 
     private SerialPort serialPort;
@@ -34,13 +33,18 @@ public class PortConnect : MonoBehaviour
     // Arduino에서 받은 데이터 (바이너리 메시지)
     public uint startTime = 0;    // START 메시지의 startTime (4바이트)
     public uint elapsedTime = 0;  // DATA 메시지의 경과 시간 (4바이트, 마이크로초 단위)
-    public uint elapsedTimeIntervalPre = 0;
-    public uint elapsedTimeIntervalCurr = 0;
-    public uint encoderCount = 0; // DATA 메시지의 encoderCount (4바이트)
-
+    
+    // y축 Δy 값 누적 (Arduino에서 전달받은 Δy 값: 부호 있는 정수)
+    public int cumulativeDeltaY = 0;
+    // 최근에 받은 Δy 값 (부호 있는 정수)
+    public int lastDeltaY = 0;
+    // 마지막 두 메시지 간 경과 시간 (초 단위)
+    public float lastDeltaTimeSec = 0f;
+    private uint previousElapsedTime = 0; 
+    
     [Header("Position & Speed Settings")]
     // tick 당 이동 거리 (예: 0.1 cm)
-    public float distancePerTick = 0.1f;
+    public float distancePerDelta = 0.1f;
     public float position = 0f;   // 누적 위치 (cm)
     public float speed = 0f;      // 평균 속도 (cm/s)
 
@@ -58,7 +62,6 @@ public class PortConnect : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
-        TXTRANDOM = Random.Range(0, 500);
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -91,6 +94,8 @@ public class PortConnect : MonoBehaviour
             isRunning = true;
             readThread = new Thread(ReadSerial);
             readThread.Start();
+            
+            SendStartCommand();
         }
         catch (Exception e)
         {
@@ -103,20 +108,29 @@ public class PortConnect : MonoBehaviour
         // 메시지 큐에 쌓인 데이터를 처리
         ProcessMessageQueue();
 
-        // 전달받은 데이터를 기반으로 포지션 및 속도 계산
-        // speed = encoderCount / 120 * 2 * Mathf.PI * 0.1;
-        position = encoderCount * Mathf.PI / 6.0f * 5;
-        // position = encoderCount * distancePerTick * 5f/ 3f * Mathf.PI; // * 100(m to cm)/120(tick number)*2pi
-        float elapsedSec = (elapsedTimeIntervalCurr - elapsedTimeIntervalPre) / 1000f;  // ms -> s 단위 //TODO? : / 100f
-        speed = ( (elapsedSec > 0f) ? position / elapsedSec : 0f);
-
-        mr.Record();
+        // 누적 Δy 값을 cm 단위의 이동 거리로 환산
+        position = cumulativeDeltaY * distancePerDelta;
+        // 최근 Δy 값과 메시지 간 시간 차를 이용하여 순간 속도(cm/s) 계산
+        if (lastDeltaTimeSec > 0)
+        {
+            speed = (lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f;
+        }
+        else
+        {
+            speed = 0f;
+        }
         
+        mr.Record();
+
         // 지정한 간격마다 디버그 로그 출력
         if (Time.time - lastLogTime >= logInterval)
         {
             lastLogTime = Time.time;
-            Debug.Log($"[DEBUG] Position: {position:F2} cm, Speed: {speed:F2} cm/s, Encoder Count: {encoderCount}, Elapsed Time: {elapsedTime} us");
+            if (DEBUG)
+            {
+                Debug.Log(
+                    $"[DEBUG] Position: {position:F2} cm, Speed: {speed:F2} cm/s, Last Δy: {lastDeltaY}, Cumulative Δy: {cumulativeDeltaY}, Elapsed Time: {elapsedTime} ms");
+            }
         }
     }
 
@@ -244,13 +258,19 @@ public class PortConnect : MonoBehaviour
         }
         else if (msgType == 0x01 && msg.Length == 10)
         {
-            elapsedTime = BitConverter.ToUInt32(msg, 2);
-            elapsedTimeIntervalPre = elapsedTimeIntervalCurr;
-            elapsedTimeIntervalCurr = elapsedTime;
-            encoderCount = BitConverter.ToUInt32(msg, 6);
+            uint currentTime = BitConverter.ToUInt32(msg, 2);
+            elapsedTime = currentTime;
+            int deltaY = BitConverter.ToInt32(msg, 6); // y축 Δy 값 (부호 있음)
+            if (previousElapsedTime != 0)
+            {
+                lastDeltaTimeSec = (currentTime - previousElapsedTime) / 1000f;
+            }
+            previousElapsedTime = currentTime;
+            cumulativeDeltaY += deltaY;
+            lastDeltaY = deltaY;
             if (DEBUG)
             {
-                Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} us, Encoder: {encoderCount}");
+                Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaY}");
             }
         }
         else
@@ -285,7 +305,6 @@ public class PortConnect : MonoBehaviour
     public void SendResetCommand()
     {
         SendCommand("R");
-        mr.SaveRemainingBuffer();
     }
     
     public void SendStartCommand()
