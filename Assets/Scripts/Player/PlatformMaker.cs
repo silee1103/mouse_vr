@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class PlatformMaker : MonoBehaviour
+public abstract class PlatformMaker : MonoBehaviour
 {
     public GameObject platform;
     public GameObject endCorridor;
@@ -11,6 +12,9 @@ public class PlatformMaker : MonoBehaviour
     public int corridorNumber = 0; // 생성할 플랫폼의 수 (-1일 경우 무한 생성)
     public float platformWidth;
     [SerializeField] protected List<GameObject> _spawnedPlatforms; // 생성된 플랫폼 관리
+    [SerializeField] protected Image _blackImage;
+    [SerializeField] protected float _waterOutDuration = 5f;
+    protected MovementRecorder mr;
     
     public void OnSliderValueChanged(float value)
     {
@@ -124,4 +128,38 @@ public class PlatformMaker : MonoBehaviour
             _spawnedPlatforms.Add(newEndCorridor);
         }
     }
+    
+    protected void OnTriggerEnter(Collider other)
+    {
+        if (corridorNumber < 0 && other.gameObject.CompareTag("PlatformTrigger"))
+        {
+            AddCorrior(-56);
+        }
+        if (other.gameObject.CompareTag("WaterTrigger"))
+        {
+            StartCoroutine(WaterTrigger());
+        }
+        Destroy(other);
+    }
+    
+    protected IEnumerator FadeInImage(float duration)
+    {
+        Color color = _blackImage.color;
+        float startAlpha = 0f;
+        float endAlpha = 1f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
+            _blackImage.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+
+        // Ensure final value
+        _blackImage.color = new Color(color.r, color.g, color.b, endAlpha);
+    }
+
+    public abstract IEnumerator WaterTrigger();
 }

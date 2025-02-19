@@ -2,16 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class PlatformTriggerTrain : PlatformMaker
 {
-    [SerializeField] private Image _blackImage;
-    [SerializeField] private float _waterOutDuration = 5f;
-    
-    private MovementRecorder mr;
-
     private void Start()
     {
         mr = GetComponentInChildren<MovementRecorder>();
@@ -33,20 +26,7 @@ public class PlatformTriggerTrain : PlatformMaker
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (corridorNumber < 0 && other.gameObject.CompareTag("PlatformTrigger"))
-        {
-            AddCorrior(-56);
-        }
-        if (other.gameObject.CompareTag("WaterTrigger"))
-        {
-            StartCoroutine(WaterTrigger());
-        }
-        Destroy(other);
-    }
-
-    private IEnumerator WaterTrigger()
+    public override IEnumerator WaterTrigger()
     {
         yield return StartCoroutine(FadeInImage(1f));
         mr.RecordLick();
@@ -55,22 +35,4 @@ public class PlatformTriggerTrain : PlatformMaker
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     
-    IEnumerator FadeInImage(float duration)
-    {
-        Color color = _blackImage.color;
-        float startAlpha = 0f;
-        float endAlpha = 1f;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-            _blackImage.color = new Color(color.r, color.g, color.b, alpha);
-            yield return null;
-        }
-
-        // Ensure final value
-        _blackImage.color = new Color(color.r, color.g, color.b, endAlpha);
-    }
 }
