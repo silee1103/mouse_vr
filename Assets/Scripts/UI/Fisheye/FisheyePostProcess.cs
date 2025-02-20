@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// Fisheye 생성용 코드
+
 [ExecuteInEditMode]
 public class FisheyePostProcess : MonoBehaviour
 {
