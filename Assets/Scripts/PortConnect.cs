@@ -1,31 +1,35 @@
 using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
 using System.Text;
-using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
-using Random = UnityEngine.Random;
 
+// 아두이노와 연결되어 speed를 주기적으로 계산하고 / 아두이노 lick, reset, start, trigger, end 신호를 보낼 수 있는 함수
+// 속도(cm/s): PortConnect.instance.speed
+// 신호:
+    // PortConnect.instance.SendLickCommand()
+    // PortConnect.instance.SendResetCommand()
+    // PortConnect.instance.SendStartCommand()
+    // PortConnect.instance.SendTriggerCommand()
+    // PortConnect.instance.SendEndCommand()
 public class PortConnect : MonoBehaviour
 {
-    // 싱글턴 인스턴스 (여러 씬에서 유지할 경우)
+    // singleton instance (모든 코드에서 PortConnect.instance.(public 변수나 함수 이름) 으로 접근 가능 + 그리고 unity가 꺼질 때까지 해당 스크립트를 가진 instance는 단 하나만 존재함)
     public static PortConnect instance;
 
     [Header("Serial Port Settings")]
     [SerializeField] private string portName = "COM16";  // 환경에 맞게 변경
     [SerializeField] private int baudRate = 115200;        // Arduino와 동일
-
-    // 디버그 로그 활성화 여부 (true이면 로그 출력)
-    public bool DEBUG = true;
-    public MovementRecorder mr;
-
     private SerialPort serialPort;
     private Thread readThread;
-    private bool isRunning = false;
 
+    [Header("DEBUG (LOG) Settings")]
+    [SerializeField] private bool DEBUG = true;
+    private float lastLogTime = 0f;
+    private float logInterval = 1f; // 1초에 한 번 로그 출력
+    
     // 스레드 안전 메시지 큐 (바이너리 메시지)
     private Queue<byte[]> messageQueue = new Queue<byte[]>();
     private readonly object queueLock = new object();
@@ -34,27 +38,24 @@ public class PortConnect : MonoBehaviour
     public uint startTime = 0;    // START 메시지의 startTime (4바이트)
     public uint elapsedTime = 0;  // DATA 메시지의 경과 시간 (4바이트, 마이크로초 단위)
     
-    // y축 Δy 값 누적 (Arduino에서 전달받은 Δy 값: 부호 있는 정수)
-    public int cumulativeDeltaY = 0;
-    // 최근에 받은 Δy 값 (부호 있는 정수)
-    public int lastDeltaY = 0;
-    // 마지막 두 메시지 간 경과 시간 (초 단위)
-    public float lastDeltaTimeSec = 0f;
-    private uint previousElapsedTime = 0; 
+    public int cumulativeDeltaY = 0;    // y축 Δy 값 누적 (Arduino에서 전달받은 Δy 값: 부호 있는 정수)
+    
+    public int lastDeltaY = 0;              // 최근에 받은 Δy 값 (부호 있는 정수)
+    public float lastDeltaTimeSec = 0f;     // 마지막 두 메시지 간 경과 시간 (초 단위)
+    private uint previousElapsedTime = 0;   // 마지막 메세지 받은 시간
     
     [Header("Position & Speed Settings")]
-    // tick 당 이동 거리 (예: 0.1 cm)
-    public float distancePerDelta = 0.1f;
+    public float distancePerDelta = 0.1f;   // tick 당 이동 거리 (예: 0.1 cm)
     public float position = 0f;   // 누적 위치 (cm)
-    public float speed = 0f;      // 평균 속도 (cm/s)
-
-    // 디버그 로그 출력 간격 (초)
-    private float lastLogTime = 0f;
-    private float logInterval = 1f; // 1초에 한 번 로그 출력
-
+    public float speed = 0f;      // 평균 속도 (cm/s)  !!!! 외부에서 사용 !!!
+    
+    // 추가 변수
+    private MovementRecorder mr;    // Record 함수 호출 위함 (speed 계산 시에 Record)
+    private bool isRunning = false; // 시작 시에 true, unity 종료 시에 false
+    
     void Awake()
     {
-        // 싱글턴 패턴 적용
+        // Singleton pattern 적용
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -62,9 +63,12 @@ public class PortConnect : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        // Scene load 시에 불릴 함수 추가
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    // Scene Load 시 마다 movement recorder를 찾아 mr 변수에 할당하도록 설정
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // 새 씬이 로드될 때 MovementRecorder 찾기
@@ -80,6 +84,7 @@ public class PortConnect : MonoBehaviour
         }
     }
 
+    // 게임 시작 시에 serial 통신 port를 열고 serialPort에 endpoint 할당 + 통신용 thread 열어 ReadSerial 함수를 반복적으로 호출하도록 함
     void Start()
     {
         try
@@ -103,24 +108,27 @@ public class PortConnect : MonoBehaviour
         }
     }
 
+    // 특정 시간 때마다 ReadSerial 함수를 통해 쌓인 데이터를 speed로 변환
+    // (Fixed Update는 default로 0.02초 주기 - Edit -> Project Settings -> Time에서 설정 가능)
     void FixedUpdate()
     {
-        // 메시지 큐에 쌓인 데이터를 처리
+        // readThread에서 메시지 큐에 쌓은 데이터를 처리
         ProcessMessageQueue();
 
-        // 누적 Δy 값을 cm 단위의 이동 거리로 환산
+        // 누적 Δy 값을 cm 단위의 이동 거리로 환산 (정확한 position이 필요하다면 MovementRecorder를 수정하여 해당 값 저장하도록 변경, 지금은 쓰이지 않음)
         position = cumulativeDeltaY * distancePerDelta;
+        
         // 최근 Δy 값과 메시지 간 시간 차를 이용하여 순간 속도(cm/s) 계산
         if (lastDeltaTimeSec > 0)
         {
-            speed = (lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f;
+            speed = (lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f; // 마우스는 1/100 인치 단위 사용 == [0.01인치=0.0254cm]
         }
         else
         {
             speed = 0f;
         }
         
-        mr.Record();
+        mr.Record(); // 파일에 Record하라는 신호
 
         // 지정한 간격마다 디버그 로그 출력
         if (Time.time - lastLogTime >= logInterval)
@@ -134,6 +142,7 @@ public class PortConnect : MonoBehaviour
         }
     }
 
+    // 앱 종효 시 Thread, serialPort 종료
     void OnApplicationQuit()
     {
         isRunning = false;
@@ -239,7 +248,8 @@ public class PortConnect : MonoBehaviour
         }
     }
 
-    // 바이너리 메시지 파싱
+    // 바이너리 메시지 파싱해서 변수에 할당
+    // 바이너리 메세지 프로토콜
     // START 메시지 (6바이트): [0xAA][0x02][startTime (4바이트)]
     // DATA 메시지 (10바이트): [0xAA][0x01][elapsedTime (4바이트)][encoderCount (4바이트)]
     void ParseMessage(byte[] msg)
@@ -280,7 +290,7 @@ public class PortConnect : MonoBehaviour
     }
 
     // Arduino로 명령어 전송 (예: "RESET", "LICK")
-    public void SendCommand(string cmd)
+    void SendCommand(string cmd)
     {
         if (serialPort != null && serialPort.IsOpen)
         {
@@ -295,28 +305,30 @@ public class PortConnect : MonoBehaviour
         }
     }
 
-    // 릭포트(보상) 실행 명령 ("1" 또는 "LICK")
+    
+    // !!!! 외부에서 사용 !!!
+    
+    // 릭포트(보상) 실행 명령
     public void SendLickCommand()
     {
         SendCommand("L");
     }
-
-    // 측정 리셋 명령 ("RESET")
+    // 측정 리셋 명령
     public void SendResetCommand()
     {
         SendCommand("R");
     }
-    
+    // 아두이노 보드 로직 시작 명령
     public void SendStartCommand()
     {
         SendCommand("S");
     }
-    
+    // inscopics 측정 시작 명령
     public void SendTriggerCommand()
     {
         SendCommand("T");
     }
-    
+    // inscopics 측정 종료 명령
     public void SendEndCommand()
     {
         SendCommand("E");
