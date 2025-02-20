@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 
 // UI에 할당 + 할당된 target의 rotation 에 따라 방향 및 위치 정보를 UI로 표시하는 클래스
+// Prefab/UI/ColorWheel을 scene의 canvas에 두고 inspector에서 target에 객체 할당 
 public class DirectionDisplay : MonoBehaviour
 {
     [Header("UI Elements")]
