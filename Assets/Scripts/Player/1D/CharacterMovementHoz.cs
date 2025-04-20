@@ -31,7 +31,7 @@ public class CharacterMovementHoz : MonoBehaviour
         // 목표 속도를 갱신
         if (!isAuto)
         {
-            targetSpeed = PortConnect.instance.speed; // 아두이노 속도 데이터 가져오기
+            targetSpeed = PortConnect.instance.speedY; // 아두이노 속도 데이터 가져오기
         }
 
         // 현재 속도를 목표 속도로 보간 (부드러운 속도 변화 적용)

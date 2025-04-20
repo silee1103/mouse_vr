@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading;
 using System.Text;
+using Unity.Mathematics;
 using UnityEngine.SceneManagement;
 
 // 아두이노와 연결되어 speed를 주기적으로 계산하고 / 아두이노 lick, reset, start, trigger, end 신호를 보낼 수 있는 함수
@@ -18,6 +19,8 @@ public class PortConnect : MonoBehaviour
 {
     // singleton instance (모든 코드에서 PortConnect.instance.(public 변수나 함수 이름) 으로 접근 가능 + 그리고 unity가 꺼질 때까지 해당 스크립트를 가진 instance는 단 하나만 존재함)
     public static PortConnect instance;
+
+    public bool is1D = false;
 
     [Header("Serial Port Settings")]
     [SerializeField] private string portName = "COM16";  // 환경에 맞게 변경
@@ -39,15 +42,24 @@ public class PortConnect : MonoBehaviour
     public uint elapsedTime = 0;  // DATA 메시지의 경과 시간 (4바이트, 마이크로초 단위)
     
     public int cumulativeDeltaY = 0;    // y축 Δy 값 누적 (Arduino에서 전달받은 Δy 값: 부호 있는 정수)
+    public int cumulativeDeltaX = 0;    // x축 Δx 값 누적 (Arduino에서 전달받은 Δx 값: 부호 있는 정수)
     
     public int lastDeltaY = 0;              // 최근에 받은 Δy 값 (부호 있는 정수)
+    public int lastDeltaX = 0;              // 최근에 받은 Δx 값 (부호 있는 정수)
+
     public float lastDeltaTimeSec = 0f;     // 마지막 두 메시지 간 경과 시간 (초 단위)
     private uint previousElapsedTime = 0;   // 마지막 메세지 받은 시간
     
     [Header("Position & Speed Settings")]
     public float distancePerDelta = 0.1f;   // tick 당 이동 거리 (예: 0.1 cm)
-    public float position = 0f;   // 누적 위치 (cm)
-    public float speed = 0f;      // 평균 속도 (cm/s)  !!!! 외부에서 사용 !!!
+    public float positionY = 0f;   // 누적 위치 (cm)
+    public float speedY = 0f;      // 평균 속도 (cm/s)  !!!! 외부에서 사용 !!!
+    
+    public float positionX = 0f;   // 누적 위치 (cm)
+    public float speedX = 0f;      // 평균 속도 (cm/s)  !!!! 외부에서 사용 !!!
+
+    public float headRotation = 0f;
+    private float hr = 0;
     
     // 추가 변수
     private MovementRecorder mr;    // Record 함수 호출 위함 (speed 계산 시에 Record)
@@ -116,16 +128,21 @@ public class PortConnect : MonoBehaviour
         ProcessMessageQueue();
 
         // 누적 Δy 값을 cm 단위의 이동 거리로 환산 (정확한 position이 필요하다면 MovementRecorder를 수정하여 해당 값 저장하도록 변경, 지금은 쓰이지 않음)
-        position = cumulativeDeltaY * distancePerDelta;
+        positionY = cumulativeDeltaY * distancePerDelta;
+        if (!is1D) { positionX = cumulativeDeltaX * distancePerDelta; }
         
         // 최근 Δy 값과 메시지 간 시간 차를 이용하여 순간 속도(cm/s) 계산
         if (lastDeltaTimeSec > 0)
         {
-            speed = (lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f; // 마우스는 1/100 인치 단위 사용 == [0.01인치=0.0254cm]
+            headRotation = (hr * distancePerDelta) / lastDeltaTimeSec * 2* math.PI / 360;
+            speedY = -(lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f; // 마우스는 1/100 인치 단위 사용 == [0.01인치=0.0254cm]
+            if (!is1D) {speedX = -(lastDeltaX * distancePerDelta) / lastDeltaTimeSec * 0.0254f;}
         }
         else
         {
-            speed = 0f;
+            headRotation = 0f;
+            speedY = 0f;
+            if (!is1D) {speedX = 0f;}
         }
         
         mr.Record(); // 파일에 Record하라는 신호
@@ -136,8 +153,19 @@ public class PortConnect : MonoBehaviour
             lastLogTime = Time.time;
             if (DEBUG)
             {
-                Debug.Log(
-                    $"[DEBUG] Position: {position:F2} cm, Speed: {speed:F2} cm/s, Last Δy: {lastDeltaY}, Cumulative Δy: {cumulativeDeltaY}, Elapsed Time: {elapsedTime} ms");
+                if (is1D)
+                {
+                    Debug.Log(
+                        $"[DEBUG] Position: {positionY:F2} cm, Speed: {speedY:F2} cm/s, Last Δy: {lastDeltaY}, Cumulative Δy: {cumulativeDeltaY}, Elapsed Time: {elapsedTime} ms");
+                }
+                else
+                {
+                    Debug.Log(
+                        $"[DEBUG] Position X: {positionX:F2} cm, Position Y: {positionY:F2} cm\n" +
+                        $"Speed X: {speedX:F2} cm/s, Speed Y: {speedY:F2} cm/s\n" +
+                        $"Last Δx: {lastDeltaX}, Cumulative Δx: {cumulativeDeltaX}" +
+                        $"Last Δy: {lastDeltaY}, Cumulative Δy: {cumulativeDeltaY}\n Elapsed Time: {elapsedTime} ms");
+                }
             }
         }
     }
@@ -197,7 +225,7 @@ public class PortConnect : MonoBehaviour
                         }
                         byte msgType = buffer[1];
                         // 메시지 길이 결정 (0x02: START 메시지 = 6바이트, 0x01: DATA 메시지 = 10바이트)
-                        int msgLength = (msgType == 0x02) ? 6 : (msgType == 0x01 ? 10 : -1);
+                        int msgLength = (msgType == 0x02) ? 6 : (msgType == 0x01 ? 12 : -1);
                         if (msgLength == -1)
                         {
                             // 알 수 없는 메시지 타입이면 헤더 바이트 제거 후 재시도
@@ -266,21 +294,47 @@ public class PortConnect : MonoBehaviour
                 Debug.Log("[DEBUG] START message received. Start time: " + startTime);
             }
         }
-        else if (msgType == 0x01 && msg.Length == 10)
+        else if (msgType == 0x01 && msg.Length == 12)
         {
             uint currentTime = BitConverter.ToUInt32(msg, 2);
             elapsedTime = currentTime;
-            int deltaY = BitConverter.ToInt32(msg, 6); // y축 Δy 값 (부호 있음)
-            if (previousElapsedTime != 0)
+            if (is1D)
             {
-                lastDeltaTimeSec = (currentTime - previousElapsedTime) / 1000f;
-            }
-            previousElapsedTime = currentTime;
-            cumulativeDeltaY += deltaY;
-            lastDeltaY = deltaY;
-            if (DEBUG)
+                int deltaY = BitConverter.ToInt32(msg, 6); // y축 Δy 값 (부호 있음)
+                if (previousElapsedTime != 0)
+                {
+                    lastDeltaTimeSec = (currentTime - previousElapsedTime) / 1000f;
+                }
+
+                previousElapsedTime = currentTime;
+                cumulativeDeltaY += deltaY;
+                lastDeltaY = deltaY;
+                if (DEBUG)
+                {
+                    Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaY}");
+                }
+            } else
             {
-                Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaY}");
+                int deltaY = BitConverter.ToInt16(msg, 6); // y축 Δy 값 (부호 있음)
+                int deltaX = BitConverter.ToInt16(msg, 8);
+                int deltaRotation = BitConverter.ToInt16(msg, 10);  // Degrees
+                
+                if (previousElapsedTime != 0)
+                {
+                    lastDeltaTimeSec = (currentTime - previousElapsedTime) / 1000f;
+                }
+
+                previousElapsedTime = currentTime;
+                cumulativeDeltaY += deltaY;
+                cumulativeDeltaX += deltaX;
+                lastDeltaY = deltaY;
+                lastDeltaX = deltaX;
+                hr = deltaRotation;
+                
+                if (DEBUG)
+                {
+                    Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaY}, Δx: {deltaX}");
+                }
             }
         }
         else
@@ -311,12 +365,12 @@ public class PortConnect : MonoBehaviour
     // 릭포트(보상) 실행 명령
     public void SendLickCommand()
     {
-        SendCommand("L");
+        SendCommand("L"); // 2D: 보상 신호; 1초간 PIN_LICK ON
     }
     // 측정 리셋 명령
     public void SendResetCommand()
     {
-        SendCommand("R");
+        SendCommand("R"); // 2D: (누적 이동량 및 타이머 초기화)
     }
     // 아두이노 보드 로직 시작 명령
     public void SendStartCommand()
@@ -326,11 +380,11 @@ public class PortConnect : MonoBehaviour
     // inscopics 측정 시작 명령
     public void SendTriggerCommand()
     {
-        SendCommand("T");
+        SendCommand("T"); // 2D: 트리거 시작 (PIN_TRIGGER HIGH; 종료 명령 전까지 유지)
     }
     // inscopics 측정 종료 명령
     public void SendEndCommand()
     {
-        SendCommand("E");
+        SendCommand("E"); // 2D: 트리거 종료 (PIN_TRIGGER LOW)
     }
 }

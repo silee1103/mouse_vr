@@ -5,10 +5,13 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/1D/MouseTutorialScene_Corridor.unity
     guid: 86e9eb4107acb71459d5505c5550a9d1
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/1D/MouseTrainScene_Corridor.unity
     guid: 0ef6f3c4bf0f2af469037903a7b9e8e1
+  - enabled: 1
+    path: Assets/Scenes/MainScene.unity
+    guid: 05f1caf7b83e45045afc140e66a286ed
   m_configObjects: {}

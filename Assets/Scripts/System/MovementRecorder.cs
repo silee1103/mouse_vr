@@ -53,7 +53,7 @@ public class MovementRecorder : MonoBehaviour
     // 현재 캐릭터의 위치, 회전, 시간, 속도를 기록
     public void Record()
     {
-        RecordPosition(transform.position, transform.rotation.eulerAngles.y, PortConnect.instance.elapsedTime / 1000f, PortConnect.instance.speed);
+        RecordPosition(transform.position, transform.rotation.eulerAngles.y, PortConnect.instance.elapsedTime / 1000f, PortConnect.instance.speedY);
     }
 
     // 특정 이벤트(예: Lick 발생) 시 데이터 기록

@@ -492,13 +492,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiPopUp: {fileID: 920750984}
-  headRealismText: {fileID: 0}
   corridorSizeText: {fileID: 1362080040}
   slider: {fileID: 2102388742}
   corridorNumberText: {fileID: 1185782992}
   corridorNumberInput: {fileID: 1777989787}
-  resetButton: {fileID: 249804127}
   loopToggle: {fileID: 191279925}
+  mr: {fileID: 0}
 --- !u!95 &118841440
 Animator:
   serializedVersion: 5
@@ -2130,19 +2129,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04a833443b00db649934db134edb14f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  portName: COM16
+  portName: COM11
   baudRate: 115200
   DEBUG: 0
-  TXTRANDOM: 0
-  mr: {fileID: 1793140313}
   startTime: 0
   elapsedTime: 0
-  elapsedTimeIntervalPre: 0
-  elapsedTimeIntervalCurr: 0
-  encoderCount: 0
-  distancePerTick: 0.1
+  cumulativeDeltaY: 0
+  lastDeltaY: 0
+  lastDeltaTimeSec: 0
+  distancePerDelta: 0.1
   position: 0
-  speed: 0
+  speedZ: 0
 --- !u!4 &1130358194
 Transform:
   m_ObjectHideFlags: 0
@@ -3186,6 +3183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f0fab68b837f5047b84374de90e60d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TXTRANDOM: 0
   maxCorridor: 17
   minCorridor: 0
 --- !u!4 &1450311172
