@@ -8,6 +8,8 @@ TagManager:
   - Camera
   - Wall
   - WaterTrigger
+  - Floor
+  - Animal
   layers:
   - Default
   - TransparentFX

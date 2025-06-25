@@ -134,15 +134,14 @@ public class PortConnect : MonoBehaviour
         // 최근 Δy 값과 메시지 간 시간 차를 이용하여 순간 속도(cm/s) 계산
         if (lastDeltaTimeSec > 0)
         {
-            headRotation = (hr * distancePerDelta) / lastDeltaTimeSec * 2* math.PI / 360;
-            speedY = -(lastDeltaY * distancePerDelta) / lastDeltaTimeSec * 0.0254f; // 마우스는 1/100 인치 단위 사용 == [0.01인치=0.0254cm]
-            if (!is1D) {speedX = -(lastDeltaX * distancePerDelta) / lastDeltaTimeSec * 0.0254f;}
+            speedY = lastDeltaY * distancePerDelta / lastDeltaTimeSec;
+            if (!is1D) speedX = lastDeltaX * distancePerDelta / lastDeltaTimeSec;
+
+            headRotation = (hr * math.PI / 180f) / lastDeltaTimeSec;
         }
         else
         {
-            headRotation = 0f;
-            speedY = 0f;
-            if (!is1D) {speedX = 0f;}
+            speedY = speedX = headRotation = 0f;
         }
         
         mr.Record(); // 파일에 Record하라는 신호
@@ -315,8 +314,11 @@ public class PortConnect : MonoBehaviour
                 }
             } else
             {
-                int deltaY = BitConverter.ToInt16(msg, 6); // y축 Δy 값 (부호 있음)
-                int deltaX = BitConverter.ToInt16(msg, 8);
+                short rawY = BitConverter.ToInt16(msg, 6);
+                short rawX = BitConverter.ToInt16(msg, 8);
+                int deltaXcount = rawY;
+                int deltaYcount = rawX;
+                
                 int deltaRotation = BitConverter.ToInt16(msg, 10);  // Degrees
                 
                 if (previousElapsedTime != 0)
@@ -325,15 +327,15 @@ public class PortConnect : MonoBehaviour
                 }
 
                 previousElapsedTime = currentTime;
-                cumulativeDeltaY += deltaY;
-                cumulativeDeltaX += deltaX;
-                lastDeltaY = deltaY;
-                lastDeltaX = deltaX;
-                hr = deltaRotation;
+                cumulativeDeltaX += deltaXcount;
+                cumulativeDeltaY += deltaYcount;
+                lastDeltaY = deltaXcount;
+                lastDeltaX = deltaYcount;
+                hr = BitConverter.ToInt16(msg, 10);
                 
                 if (DEBUG)
                 {
-                    Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaY}, Δx: {deltaX}");
+                    Debug.Log($"[DEBUG] DATA received. Elapsed: {elapsedTime} ms, Δy: {deltaYcount}, Δx: {deltaXcount}");
                 }
             }
         }
