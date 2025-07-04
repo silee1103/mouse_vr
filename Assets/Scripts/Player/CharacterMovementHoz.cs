@@ -28,32 +28,38 @@ public class CharacterMovementHoz : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // 목표 속도를 갱신
         if (!isAuto)
         {
-            targetSpeed = PortConnect.instance.speed; // 아두이노 속도 데이터 가져오기
+            targetSpeed = PortConnect.instance.speed;
         }
 
-        // 현재 속도를 목표 속도로 보간 (부드러운 속도 변화 적용)
-        currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, 0.02f);
-        
-        // 움직임 적용
-        if (Mathf.Abs(currentSpeed) > 0.1f) // 일정 속도 이상일 때만 이동
-        {
-            Vector3 moveDirection = transform.forward * (currentSpeed * speedWorldMul * Time.fixedDeltaTime);
-            
-            if (CheckHitWall(moveDirection)) // 벽과 충돌할 경우 이동하지 않음
-                moveDirection = Vector3.zero;
-                
-            transform.Translate(moveDirection, Space.World);
+        // Δy 크기에 따라 보간 계수 변화
+        float deltaY = Mathf.Abs(PortConnect.instance.lastDeltaY);
 
-            _anim.SetBool("running", true); // 이동 중 애니메이션 활성화
+        // 필터 감쇠 강도 (Δy가 작을수록 감쇠 빠르게)
+        float baseLerp = 0.02f;          // 큰 Δy일 때 기본 감쇠율
+        float maxLerp = 0.35f;           // 아주 작은 Δy일 때 최대 감쇠율
+        float lerpFactor = Mathf.Lerp(maxLerp, baseLerp, Mathf.InverseLerp(0f, 1000f, deltaY));
+
+        // 속도 보간 적용
+        currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, lerpFactor);
+
+        // 이동 및 애니메이션 처리
+        if (Mathf.Abs(currentSpeed) > 0.1f)
+        {
+            Vector3 moveDirection = - transform.forward * (currentSpeed * speedWorldMul * Time.fixedDeltaTime);
+            if (CheckHitWall(moveDirection))
+                moveDirection = Vector3.zero;
+
+            transform.Translate(moveDirection, Space.World);
+            _anim.SetBool("running", true);
         }
         else
         {
-            _anim.SetBool("running", false); // 정지 상태 애니메이션 활성화
+            _anim.SetBool("running", false);
         }
     }
+
 
     // 벽 충돌 감지 함수
     bool CheckHitWall(Vector3 movement)

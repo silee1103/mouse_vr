@@ -12,6 +12,8 @@ public abstract class PlatformMaker : MonoBehaviour
 {
     [Header("Platform Settings")]
     public GameObject platform;           // 기본 플랫폼 프리팹
+    public List<GameObject> corridorPrefabs;
+    private int corridorType = 0;
     public GameObject endCorridor;        // 마지막에 배치할 EndCorridor 프리팹
     public GameObject existingSectionParent; // 생성된 플랫폼을 포함할 부모 오브젝트
 
@@ -41,6 +43,46 @@ public abstract class PlatformMaker : MonoBehaviour
                 platform.transform.localScale = new Vector3(platformWidth, currentScale.y, currentScale.z);
             }
         }
+    }
+
+    public void corridorPrefabsChangeBtn()
+    {
+        GameObject newObj;
+        corridorType = (corridorType + 1) % corridorPrefabs.Count;
+        // 모든 생성된 플랫폼의 x local scale 업데이트
+        for (int i = 0; i < _spawnedPlatforms.Count - 1; i++)
+        {
+            GameObject platform = _spawnedPlatforms[i];
+            if (platform != null)
+            {
+                newObj = ReplaceWithNewPrefab(platform, corridorPrefabs[corridorType]);
+                _spawnedPlatforms[i] = newObj;
+            }
+        }
+
+        newObj = ReplaceWithNewPrefab(_spawnedPlatforms[_spawnedPlatforms.Count - 1],endCorridor);
+        _spawnedPlatforms[_spawnedPlatforms.Count-1] = newObj;
+
+        platform = corridorPrefabs[corridorType];
+    }
+    
+    public static GameObject ReplaceWithNewPrefab(GameObject original, GameObject newPrefab)
+    {
+        // 기존 정보 저장
+        Transform t = original.transform;
+        Vector3 pos = t.position;
+        Quaternion rot = t.rotation;
+        Vector3 scale = t.localScale;
+        Transform parent = t.parent;
+
+        // 기존 오브젝트 제거
+        GameObject.DestroyImmediate(original); // Editor에서 실행할 때는 DestroyImmediate
+
+        // 새 프리팹 인스턴스화
+        GameObject newObj = GameObject.Instantiate(newPrefab, pos, rot, parent);
+        newObj.transform.localScale = scale;
+
+        return newObj;
     }
 
     // 새로운 플랫폼 추가 함수

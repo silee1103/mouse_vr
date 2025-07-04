@@ -40,7 +40,7 @@ public class MoveEnd2End : MonoBehaviour
     {
         isMoving = true;
         characterMovement.isAuto = true; // 자동 이동 모드 활성화
-        characterMovement.targetSpeed = fixedSpeed; // 고정 속도 설정
+        characterMovement.targetSpeed = -fixedSpeed; // 고정 속도 설정
 
         while (isMoving)
         {
