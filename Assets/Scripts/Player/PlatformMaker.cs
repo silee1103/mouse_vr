@@ -16,6 +16,7 @@ public abstract class PlatformMaker : MonoBehaviour
     private int corridorType = 0;
     public GameObject endCorridor;        // 마지막에 배치할 EndCorridor 프리팹
     public GameObject existingSectionParent; // 생성된 플랫폼을 포함할 부모 오브젝트
+    public GameObject flyingPrefab;
 
     [Header("Generation Settings")]
     public int corridorNumber = 0;  // 생성할 플랫폼 개수 (-1일 경우 무한 생성)
@@ -28,6 +29,46 @@ public abstract class PlatformMaker : MonoBehaviour
     [SerializeField] protected float _waterOutDuration = 5f; // 물에 닿았을 때 페이드 지속 시간
 
     protected MovementRecorder mr; // 이동 데이터 기록기
+    private Coroutine flyingSpawnCoroutine;
+    
+    public void OnToggleObject(bool b)
+    {
+        Debug.Log(b);
+        if (b)
+        {
+            if (flyingSpawnCoroutine == null)
+                flyingSpawnCoroutine = StartCoroutine(SpawnFlyingObjects());
+        }
+        else
+        {
+            if (flyingSpawnCoroutine != null)
+            {
+                StopCoroutine(flyingSpawnCoroutine);
+                flyingSpawnCoroutine = null;
+            }
+        }
+    }
+
+    private IEnumerator SpawnFlyingObjects()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5f);
+
+            if (_spawnedPlatforms.Count == 0) continue;
+
+            GameObject lastPlatform = _spawnedPlatforms[_spawnedPlatforms.Count - 1];
+            if (lastPlatform == null) continue;
+            
+            GameObject obj = Instantiate(flyingPrefab);
+            
+            obj.transform.position = lastPlatform.transform.position + new Vector3(0, flyingPrefab.transform.position.y, 0);
+            
+            Rigidbody rb = obj.GetComponent<Rigidbody>();
+            if (rb != null)
+                rb.velocity = Vector3.forward * -StatusManager.instance.GetObjectSpeed();
+        }
+    }
 
     // 슬라이더 값 변경 시 호출 -> 모든 생성된 플랫폼의 너비 조정
     public void OnSliderValueChanged(float value)

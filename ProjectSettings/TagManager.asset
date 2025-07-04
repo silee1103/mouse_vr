@@ -8,6 +8,7 @@ TagManager:
   - Camera
   - Wall
   - WaterTrigger
+  - Obstacle
   layers:
   - Default
   - TransparentFX

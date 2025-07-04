@@ -15,6 +15,9 @@ public class StatusManager : MonoBehaviour
     
     private float corridorWidth = 12;  // 현재 설정된 통로의 너비
     private float _maxSize = 12;       // 통로의 최대 너비 값
+
+    private float objectSpeed = 3;
+    private int portNum = 6;
     
     public int TXTRANDOM = 0;          // 현재 record 구별자 (0~500 사이의 랜덤한 정수 값)
     
@@ -77,6 +80,27 @@ public class StatusManager : MonoBehaviour
     {
         tutNum = i;
     }
+
+    public float GetObjectSpeed()
+    {
+        return objectSpeed;
+    }
+    
+    public void SetObjectSpeed(float f)
+    {
+        objectSpeed = f;
+    }
+
+    public int GetPortNum()
+    {
+        return portNum;
+    }
+    
+    public void SetPortNum(int i)
+    {
+        portNum = i;
+    }
+    
 
     // train scene에서 통로 길이를 랜덤으로 변경 (train에서 통로 끝 도달 시 호출)
     public void RandomCurrTrainStage()

@@ -19,6 +19,11 @@ public class AdjustPanel : MonoBehaviour
     public TMP_Text corridorNumberText; // 현재 corridorNumber 표시 텍스트
     public TMP_InputField corridorNumberInput; // corridorNumber 변경용 InputField
     public Toggle loopToggle;           // 통로 길이 고정 여부를 설정하는 토글
+    public TMP_Text objectSpeedText;
+    public TMP_InputField objectSpeedInput;
+    public TMP_Text portNumText;
+    public TMP_InputField portNumInput;
+    
     
     [Header("Animation Components")]
     private Animator _anim;             // AdjustPanel의 Animator
@@ -36,6 +41,10 @@ public class AdjustPanel : MonoBehaviour
         
         // UI 이벤트 리스너 등록
         corridorNumberInput.onEndEdit.AddListener(OnCorridorNumberChanged);
+        objectSpeedInput.onEndEdit.AddListener(OnObjectSpeedChanged);
+        portNumInput.onEndEdit.AddListener(OnPortNumberChanged);
+        objectSpeedText.text = StatusManager.instance.GetObjectSpeed().ToString();
+        portNumText.text = StatusManager.instance.GetPortNum().ToString();
         loopToggle.isOn = StatusManager.instance.GetLoopFixed();
         loopToggle.onValueChanged.AddListener(StatusManager.instance.LengthFixedToggle);
         
@@ -97,6 +106,36 @@ public class AdjustPanel : MonoBehaviour
             Debug.LogError("Invalid corridorNumber input!");
         }
     }
+    
+    void OnPortNumberChanged(string value)
+    {
+        if (int.TryParse(value, out int portNumber))
+        {
+            StatusManager.instance.SetPortNum(portNumber);
+            portNumText.text = portNumber.ToString();
+            
+            PortConnect.instance.StartSerial();
+            Debug.Log($"Corridor Number updated to: {portNumber}");
+        }
+        else
+        {
+            Debug.LogError("Invalid corridorNumber input!");
+        }
+    }
+    
+    void OnObjectSpeedChanged(string value)
+    {
+        if (int.TryParse(value, out int objectSpeed))
+        {
+            StatusManager.instance.SetObjectSpeed(objectSpeed);
+            objectSpeedText.text = objectSpeed.ToString();
+            Debug.Log($"Corridor Number updated to: {objectSpeed}");
+        }
+        else
+        {
+            Debug.LogError("Invalid corridorNumber input!");
+        }
+    }
 
     // 측정 데이터 리셋 (Coroutine 실행)
     public void ResetMeasureH()
@@ -136,7 +175,6 @@ public class AdjustPanel : MonoBehaviour
         StatusManager.instance.ResetTutStage();
         SceneManager.LoadScene("MouseTutorialScene_Corridor");
     }
-
     
     // UI 팝업 애니메이션 실행
     public void PopUpUI()

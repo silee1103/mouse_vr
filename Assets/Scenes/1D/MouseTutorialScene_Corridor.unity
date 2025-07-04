@@ -310,7 +310,7 @@ GameObject:
   - component: {fileID: 107521447}
   - component: {fileID: 107521446}
   m_Layer: 5
-  m_Name: CorridoNum
+  m_Name: CorridorNum
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -549,6 +549,10 @@ MonoBehaviour:
   corridorNumberText: {fileID: 1185782992}
   corridorNumberInput: {fileID: 1777989787}
   loopToggle: {fileID: 1438206530}
+  objectSpeedText: {fileID: 1402577004}
+  objectSpeedInput: {fileID: 22905965}
+  portNumText: {fileID: 834860828}
+  portNumInput: {fileID: 478070714}
   mr: {fileID: 0}
 --- !u!95 &118841440
 Animator:
@@ -1410,7 +1414,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Loop Current Corridor
+  m_Text: Throwing Object
 --- !u!222 &392628466
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2057,7 +2061,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: CorridorNumber
+  m_text: ObjectSpeed
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4551,7 +4555,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: -1
+  m_text: 3
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5616,7 +5620,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: CorridorNumber
+  m_text: 'Port: COM'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5841,10 +5845,10 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 330351161}
-        m_TargetAssemblyTypeName: StatusManager, Assembly-CSharp
-        m_MethodName: LengthFixedToggle
-        m_Mode: 1
+      - m_Target: {fileID: 8287130906744755755}
+        m_TargetAssemblyTypeName: PlatformMaker, Assembly-CSharp
+        m_MethodName: OnToggleObject
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -6610,6 +6614,7 @@ MonoBehaviour:
   - {fileID: 6031165401544879725, guid: 1caaa064d7d4aeb4b893c6c51b3fbde5, type: 3}
   endCorridor: {fileID: 8864144008074213403, guid: 04a77ea4944a277418670deb63e6fde7, type: 3}
   existingSectionParent: {fileID: 1702878080}
+  flyingPrefab: {fileID: 7849849272286906861, guid: d211c2b8431254d4d90c695083870d43, type: 3}
   corridorNumber: -1
   platformWidth: 0
   _spawnedPlatforms: []

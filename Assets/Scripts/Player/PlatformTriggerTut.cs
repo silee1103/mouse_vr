@@ -42,7 +42,7 @@ public class PlatformTriggerTut : PlatformMaker
 
         yield return new WaitForSeconds(_waterOutDuration); // 물 효과 지속 시간 대기
 
-        // 튜토리얼이 아직 남아있다면 다음 단계로 진행, 아니면 훈련 씬으로 이동
+        // 튜토리얼이 아직 남아있다면 다음 단계로 진행, 아니면 무한루프
         if (StatusManager.instance.IsTutLeft())
         {
             StatusManager.instance.IncreaseTutStage(); // 튜토리얼 단계 증가
@@ -50,7 +50,9 @@ public class PlatformTriggerTut : PlatformMaker
         }
         else
         {
-            SceneManager.LoadScene("MouseTrainScene_Corridor"); // 훈련 씬으로 이동
+            StatusManager.instance.SetTutNum(-1);
+            StatusManager.instance.LengthFixedToggle(true);
+            // SceneManager.LoadScene("MouseTrainScene_Corridor"); // 훈련 씬으로 이동
         }
     }
 }

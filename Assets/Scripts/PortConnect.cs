@@ -20,7 +20,7 @@ public class PortConnect : MonoBehaviour
     public static PortConnect instance;
 
     [Header("Serial Port Settings")]
-    [SerializeField] private string portName = "COM16";  // 환경에 맞게 변경
+    [SerializeField] private string portName = "COM6";  // 환경에 맞게 변경
     [SerializeField] private int baudRate = 115200;        // Arduino와 동일
     private SerialPort serialPort;
     private Thread readThread;
@@ -87,24 +87,58 @@ public class PortConnect : MonoBehaviour
     // 게임 시작 시에 serial 통신 port를 열고 serialPort에 endpoint 할당 + 통신용 thread 열어 ReadSerial 함수를 반복적으로 호출하도록 함
     void Start()
     {
+        StartSerial();
+    }
+    public void StartSerial()
+    {
+        EndSerial(); // 이전 연결 종료
+        
         try
         {
+            portName = "COM" + StatusManager.instance.GetPortNum(); // 예: COM3
+            Debug.Log(portName);
             serialPort = new SerialPort(portName, baudRate);
             serialPort.ReadTimeout = 1000;
             serialPort.Open();
+
             if (DEBUG)
             {
                 Debug.Log("[DEBUG] Serial Port Opened: " + portName);
             }
+
             isRunning = true;
             readThread = new Thread(ReadSerial);
             readThread.Start();
-            
-            SendStartCommand();
+
+            SendStartCommand(); // 초기화 명령
         }
         catch (Exception e)
         {
             Debug.LogError("[DEBUG] Failed to open serial port: " + e.Message);
+        }
+    }
+    
+    // 연결 종료
+    public void EndSerial()
+    {
+        isRunning = false;
+
+        if (readThread != null && readThread.IsAlive)
+        {
+            readThread.Join(); // 스레드 종료 대기
+            readThread = null;
+        }
+
+        if (serialPort != null && serialPort.IsOpen)
+        {
+            serialPort.Close();
+            serialPort.Dispose();
+            serialPort = null;
+        }
+
+        if (DEBUG)
+        {
+            Debug.Log("[DEBUG] Serial Port Closed.");
         }
     }
 
